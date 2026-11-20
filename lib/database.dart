@@ -1,5 +1,15 @@
 import 'package:sqflite/sqflite.dart';
 import 'models.dart';
+import 'maquis_profile.dart';
+
+const _profileTable = '''
+CREATE TABLE IF NOT EXISTS maquis_profile (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  nom TEXT NOT NULL, proprietaire TEXT NOT NULL,
+  gerant TEXT NOT NULL, telephone TEXT NOT NULL,
+  ville TEXT NOT NULL, adresse TEXT NOT NULL,
+  configure_le_ms INTEGER NOT NULL
+)''';
 
 /// Base de démonstration LOCALE. Non synchronisée avec Firebase.
 class MaquisDatabase {
@@ -9,8 +19,12 @@ class MaquisDatabase {
 
   Future<void> open() async {
     final base = await getDatabasesPath();
-    _db = await openDatabase('$base/maquispro_test_v1.db', version: 1,
+    _db = await openDatabase('$base/maquispro_test_v1.db', version: 2,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) await db.execute(_profileTable);
+      },
       onCreate: (db, version) async {
+        await db.execute(_profileTable);
         await db.execute('''CREATE TABLE boissons (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           nom TEXT NOT NULL, code_barres TEXT UNIQUE,
@@ -32,6 +46,37 @@ class MaquisDatabase {
         });
       },
     );
+  }
+
+  /// Un seul établissement de démonstration par installation locale.
+  /// La séparation multi-maquis sécurisée sera assurée par Firebase Auth + Firestore.
+  Future<MaquisProfile?> getProfile() async {
+    final rows = await _db.query('maquis_profile', where: 'id = ?', whereArgs: [1], limit: 1);
+    return rows.isEmpty ? null : MaquisProfile.fromMap(rows.first);
+  }
+
+  Future<MaquisProfile> saveProfile(MaquisProfileDraft draft) async {
+    if (!draft.isValid) {
+      throw ArgumentError('Le nom, le propriétaire, le téléphone et la ville sont requis.');
+    }
+    return _db.transaction((txn) async {
+      final existing = await txn.query('maquis_profile', where: 'id = ?', whereArgs: [1], limit: 1);
+      final configuredAt = existing.isEmpty
+          ? DateTime.now().millisecondsSinceEpoch
+          : existing.first['configure_le_ms'] as int;
+      await txn.insert('maquis_profile', {
+        'id': 1,
+        'nom': draft.name.trim(),
+        'proprietaire': draft.ownerName.trim(),
+        'gerant': draft.managerName.trim(),
+        'telephone': draft.phone.trim(),
+        'ville': draft.city.trim(),
+        'adresse': draft.address.trim(),
+        'configure_le_ms': configuredAt,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      final rows = await txn.query('maquis_profile', where: 'id = ?', whereArgs: [1], limit: 1);
+      return MaquisProfile.fromMap(rows.single);
+    });
   }
 
   Future<MaquisSnapshot> snapshot() async {
