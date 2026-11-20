@@ -2,36 +2,45 @@ import 'package:flutter/material.dart';
 import 'maquis_profile.dart';
 
 const _vert = Color(0xFF08623F);
-const _or = Color(0xFFD4AF37);
 const _bleu = Color(0xFFE4F3FF);
+const _or = Color(0xFFD4AF37);
 
-/// Illustration vectorielle intégrée : bouteille de champagne générique.
-/// Aucun visuel tiers ni marque de champagne.
+/// Vraie image photoréaliste de bouteille de champagne (sans marque),
+/// embarquée dans l'APK pour fonctionner sans connexion Internet.
 class ChampagneBackground extends StatelessWidget {
-  const ChampagneBackground({super.key, this.title = 'MaquisPro',
-    this.subtitle = 'Gestion intelligente des boissons'});
+  const ChampagneBackground({
+    super.key,
+    this.title = 'MaquisPro',
+    this.subtitle = 'Gestion intelligente des boissons',
+  });
+
   final String title;
   final String subtitle;
 
   @override
   Widget build(BuildContext context) => Container(
     height: 218,
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [_bleu, Color(0xFFBEDFEF)],
-      ),
-      borderRadius: BorderRadius.all(Radius.circular(22)),
-    ),
     clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: _bleu,
+      border: Border.all(color: _or, width: 1.5),
+      borderRadius: const BorderRadius.all(Radius.circular(22)),
+    ),
     child: Stack(children: [
       Positioned(
-        top: -10, right: 5, bottom: -25, width: 175,
-        child: CustomPaint(painter: _ChampagnePainter()),
+        right: 7,
+        top: -9,
+        bottom: -10,
+        width: 164,
+        child: Image.asset(
+          'assets/images/champagne_maquispro.jpg',
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stack) =>
+              const Center(child: Icon(Icons.wine_bar, color: _or, size: 84)),
+        ),
       ),
       Positioned(
-        top: 38, left: 20, right: 100,
+        top: 36, left: 20, right: 121,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,66 +48,22 @@ class ChampagneBackground extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: _vert, fontSize: 28, fontWeight: FontWeight.w900)),
+                color: _vert, fontSize: 27, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             Text(subtitle,
-              style: const TextStyle(color: _vert, fontSize: 15)),
+              style: const TextStyle(color: _vert, fontSize: 14)),
             const SizedBox(height: 18),
-            const Text('IGC • Impact Global Consulting',
-              style: TextStyle(color: Color(0xFF876819),fontSize: 11,
-                fontWeight: FontWeight.w800)),
+            const Text(
+              'IGC • Impact Global Consulting',
+              style: TextStyle(
+                color: Color(0xFF876819),
+                fontSize: 11, fontWeight: FontWeight.w800),
+            ),
           ],
         ),
       ),
     ]),
   );
-}
-
-class _ChampagnePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.translate(size.width * .51, size.height * .08);
-    canvas.rotate(.19);
-    final h = size.height * .88;
-    final w = size.width * .39;
-    final outline = Path()
-      ..moveTo(-w * .17, 0)
-      ..lineTo(w * .17, 0)
-      ..lineTo(w * .17, h * .27)
-      ..cubicTo(w * .19, h * .35, w * .53, h * .36, w * .55, h * .51)
-      ..lineTo(w * .55, h * .94)
-      ..quadraticBezierTo(w * .55, h, w * .39, h)
-      ..lineTo(-w * .39, h)
-      ..quadraticBezierTo(-w * .55, h, -w * .55, h * .94)
-      ..lineTo(-w * .55, h * .51)
-      ..cubicTo(-w * .53, h * .36, -w * .19, h * .35, -w * .17, h * .27)
-      ..close();
-    canvas.drawPath(outline, Paint()
-      ..shader = const LinearGradient(colors: [
-        Color(0xFF085A41), Color(0xFF169A6D), Color(0xFF063D2C),
-      ]).createShader(Rect.fromLTWH(-w*.6, 0, w*1.2, h)));
-    canvas.drawPath(outline, Paint()
-      ..color = _or
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4);
-    canvas.drawRect(Rect.fromLTRB(-w*.19, 0, w*.19, h*.15),
-      Paint()..color = _or);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(-w*.5,h*.57,w*.5,h*.78),
-        const Radius.circular(6)),
-      Paint()..color = const Color(0xFFF9E7B0));
-    final text = TextPainter(
-      text: const TextSpan(text:'MP',style: TextStyle(
-        fontSize: 29,color:_vert,fontWeight:FontWeight.bold)),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    text.paint(canvas, Offset(-text.width/2,h*.625));
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class MaquisSetupPage extends StatefulWidget {
