@@ -29,3 +29,6 @@ Ce code est destiné à la **démonstration**, sans authenticaton, synchronisati
 
 ## Sécurité multi-maquis : état de développement
 La cible est décrite dans [docs/STRUCTURE_MULTI_MAQUIS.md](docs/STRUCTURE_MULTI_MAQUIS.md). Toutes les opérations sensibles (stock, ventes, caisse, licence, membres) sont **refusées en écriture depuis le client** par les nouvelles règles proposées. Un backend authentifié devra gérer les transactions et attribuer les rôles, avec tests avant tout déploiement. Les transactions SQLite du prototype ne synchronisent pas plusieurs téléphones.
+
+## Mise à jour visuelle — champagne photoréaliste
+La bouteille précédemment dessinée a été remplacée dans les écrans d'accueil et de configuration du maquis par une **image photoréaliste sans marque** enregistrée sous `assets/images/champagne_maquispro.jpg`. L'image est embarquée dans l'APK et fonctionne hors connexion. Le fond reste bleu clair, avec des accents verts et dorés. Cette modification visuelle ne change pas la synchronisation Firebase (toujours non connectée dans la démonstration).
