@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#064633">
+  <meta name="description" content="MaquisPro par IGC — Démonstration de gestion de boissons, stock, inventaires et caisse centrale.">
+  <title>MaquisPro | Démonstration IGC</title>
+  <link rel="icon" type="image/jpeg" href="./champagne.jpg">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <button class="icon-3d" type="button" id="menuBtn" aria-label="Afficher la navigation">☰</button>
+      <div class="brand"><div class="crown">♛</div><span>Maquis<b>Pro</b></span><small>IGC • Impact Global Consulting</small></div>
+      <button class="icon-3d" type="button" id="settingsBtn" aria-label="Fiche du maquis">⚙</button>
+    </header>
+
+    <div class="demo-banner" role="status"><span class="pill-dot"></span> MODE DÉMONSTRATION — données stockées uniquement dans ce navigateur. Ne pas utiliser pour de vraies recettes.</div>
+
+    <main>
+      <section class="hero">
+        <img class="champagne" src="./champagne.jpg" alt="Bouteille de champagne générique, vert et or" />
+        <div class="hero-text">
+          <span class="gold-ribbon">✦ Espace Gérant</span>
+          <h1 id="heroMaquis">Votre maquis</h1>
+          <p>Ventes, stock et bénéfices sous contrôle.</p>
+          <span class="activation">Activation commerciale : <strong>non activée</strong></span>
+          <small id="configured">Fiche à personnaliser</small>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Indicateurs de gestion">
+        <article class="metric"><span class="emoji">🪙</span><div><small>Recettes enregistrées</small><strong id="metricRevenue">0 F</strong><span>caisse centrale</span></div></article>
+        <article class="metric"><span class="emoji">🍾</span><div><small>Boissons vendues</small><strong id="metricSales">0</strong><span>depuis le début du test</span></div></article>
+        <article class="metric"><span class="emoji">📦</span><div><small>Stock restant</small><strong id="metricStock">24</strong><span id="metricAlerts">aucune alerte</span></div></article>
+        <article class="metric"><span class="emoji">📈</span><div><small>Bénéfice brut</small><strong id="metricProfit">0 F</strong><span>avant les charges</span></div></article>
+      </section>
+
+      <nav class="actions-3d" aria-label="Actions MaquisPro">
+        <button class="button-3d" data-view="scan"><span>▣</span>Scanner</button>
+        <button class="button-3d" data-view="stock"><span>▰</span>Stock</button>
+        <button class="button-3d" data-view="inventaire"><span>☷</span>Inventaire</button>
+        <button class="button-3d" data-view="caisse"><span>▤</span>Caisse</button>
+        <button class="button-3d" data-view="rapports"><span>▥</span>Rapports</button>
+      </nav>
+
+      <section class="panel shown" id="view-accueil" aria-labelledby="tAccueil">
+        <div class="panel-head"><h2 id="tAccueil">Tableau de bord</h2><span class="subtle">Bilan du test local</span></div>
+        <div class="panel-grid">
+          <article class="surface">
+            <h3>Dernières ventes</h3>
+            <div id="recentSales"></div>
+            <button class="link-button" data-view="caisse">Voir la caisse →</button>
+          </article>
+          <article class="surface">
+            <h3>Stocks à surveiller</h3>
+            <div id="lowStock"></div>
+            <button class="link-button" data-view="stock">Consulter les stocks →</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" id="view-scan" aria-labelledby="tScanner" hidden>
+        <div class="panel-head"><h2 id="tScanner">Vente directe par scanner</h2><span class="tag">1 scan = 1 vente déclarée</span></div>
+        <p class="helper">Le serveur encaisse, dépose les espèces en caisse centrale, puis scanne. Le code-barres connu enregistre immédiatement une unité vendue. Un scan ne vérifie pas physiquement l'argent reçu.</p>
+        <div class="panel-grid">
+          <article class="surface">
+            <button id="startCamera" class="button-3d full"><span>▣</span>Ouvrir la caméra</button>
+            <video id="camera" class="camera" playsinline muted hidden></video>
+            <p id="cameraStatus" class="hint">La caméra nécessite HTTPS et un navigateur compatible. Le scan s'arrête après une vente réussie pour éviter les doubles lectures.</p>
+            <button id="stopCamera" class="outline-button" hidden>Arrêter la caméra</button>
+            <label for="barcodeInput">Saisir un code-barres vérifié (essai)</label>
+            <div class="input-group">
+              <input id="barcodeInput" type="text" inputmode="numeric" autocomplete="off" placeholder="Ex. code EAN réel enregistré">
+              <button id="barcodeSale" class="gold-button" type="button">Simuler ce scan</button>
+            </div>
+          </article>
+          <article class="surface">
+            <h3>Boissons de démonstration</h3>
+            <p class="hint">Castel est fournie sans code-barres tant que le numéro n'a pas été vérifié. Un bouton de vente-test permet d'essayer la caisse.</p>
+            <div id="quickSale"></div>
+          </article>
+        </div>
+        <p id="scanResult" class="result" aria-live="polite"></p>
+      </section>
+
+      <section class="panel" id="view-stock" aria-labelledby="tStock" hidden>
+        <div class="panel-head"><h2 id="tStock">Stock par boisson</h2><span class="tag">Prix en FCFA</span></div>
+        <div id="stockTable" class="table-scroll"></div>
+        <div class="panel-grid">
+          <form class="surface form" id="newProduct">
+            <h3>Ajouter une boisson de test</h3>
+            <label>Nom <input name="name" required maxlength="80" placeholder="Nom et format"></label>
+            <label>Code-barres vérifié <input name="barcode" inputmode="numeric" placeholder="Facultatif"></label>
+            <div class="two"><label>Prix d'achat <input name="buy" type="number" min="0" step="1" required></label><label>Prix de vente <input name="sell" type="number" min="1" step="1" required></label></div>
+            <label>Quantité initiale <input name="qty" type="number" min="0" step="1" value="0" required></label>
+            <button type="submit" class="button-3d">+ Enregistrer la boisson</button>
+          </form>
+          <form class="surface form" id="restockForm">
+            <h3>Nouvel approvisionnement</h3>
+            <label>Boisson <select name="productId" id="restockProduct" required></select></label>
+            <label>Quantité de bouteilles reçues <input name="quantity" type="number" min="1" step="1" value="12" required></label>
+            <label>Prix d'achat unitaire (FCFA) <input name="cost" type="number" min="0" step="1" value="550" required></label>
+            <button type="submit" class="button-3d">+ Ajouter au stock</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel" id="view-inventaire" aria-labelledby="tInventaire" hidden>
+        <div class="panel-head"><h2 id="tInventaire">Inventaire des boissons</h2><span class="tag">Théorique ≠ physique</span></div>
+        <div class="filters"><label for="period">Période</label>
+          <select id="period"><option value="jour">Aujourd'hui</option><option value="semaine">Cette semaine</option><option value="mois">Ce mois</option></select>
+          <span id="periodLabel"></span>
+        </div>
+        <p class="helper">Le stock théorique se calcule à partir des mouvements. Saisis les quantités réellement comptées pour mesurer les écarts. Les écarts ne modifient pas le stock sans ajustement distinct.</p>
+        <div id="inventoryTable" class="table-scroll"></div>
+        <div class="row-actions"><button class="button-3d" id="saveInventory">Enregistrer le comptage</button><span id="inventorySaved" class="hint"></span></div>
+      </section>
+
+      <section class="panel" id="view-caisse" aria-labelledby="tCaisse" hidden>
+        <div class="panel-head"><h2 id="tCaisse">Caisse centrale unique</h2><span class="tag">Simulation de recettes</span></div>
+        <div class="panel-grid">
+          <div class="surface"><h3>Rapprochement</h3><div class="big-value" id="cashExpected">0 F</div><p class="hint">Recettes déclarées dans cette démonstration</p>
+            <form id="cashForm" class="form"><label>Espèces physiquement comptées (FCFA)
+              <input name="actual" type="number" min="0" step="1" placeholder="Montant compté dans la caisse">
+            </label><button type="submit" class="gold-button">Calculer l'écart</button></form>
+            <p id="cashDifference" class="result"></p>
+          </div>
+          <div class="surface"><h3>Dépenses du maquis</h3>
+            <form id="expenseForm" class="form"><label>Motif <input name="label" required maxlength="90" placeholder="Transport, électricité..."></label>
+              <label>Montant (FCFA) <input name="amount" type="number" min="0" step="1" required></label>
+              <button type="submit" class="button-3d">+ Ajouter une dépense</button></form>
+            <p id="expensesTotal" class="hint"></p>
+          </div>
+        </div>
+        <h3>Historique de ventes</h3><div id="salesTable" class="table-scroll"></div>
+      </section>
+
+      <section class="panel" id="view-rapports" aria-labelledby="tRapports" hidden>
+        <div class="panel-head"><h2 id="tRapports">Rapports et bénéfices</h2><span class="tag">Simulation</span></div>
+        <div class="report-numbers">
+          <article class="surface"><small>Recettes cumulées</small><strong id="reportRevenue">0 F</strong></article>
+          <article class="surface"><small>Coût des boissons vendues</small><strong id="reportCost">0 F</strong></article>
+          <article class="surface"><small>Charges enregistrées</small><strong id="reportExpenses">0 F</strong></article>
+          <article class="surface"><small>Bénéfice net estimé</small><strong id="reportNet">0 F</strong></article>
+        </div>
+        <h3>Boissons les plus rentables</h3><div id="profitRanking" class="surface"></div>
+      </section>
+
+      <section class="panel" id="view-parametres" aria-labelledby="tSettings" hidden>
+        <div class="panel-head"><h2 id="tSettings">Fiche du maquis</h2><span class="tag">Personnalisable</span></div>
+        <p class="helper">MaquisPro peut être vendu à différents établissements. Sur cette version publique, les données restent uniquement dans votre navigateur : n'inscrivez pas de renseignements sensibles.</p>
+        <form id="profileForm" class="form surface">
+          <label>Nom du maquis <input name="name" maxlength="80" required placeholder="Nom de démonstration"></label>
+          <label>Nom du gérant (facultatif) <input name="manager" maxlength="80" placeholder="Prénom de démonstration"></label>
+          <label>Ville / commune <input name="city" maxlength="80" placeholder="Ex. Bouaké"></label>
+          <button class="button-3d" type="submit">Enregistrer la fiche locale</button>
+          <p id="profileMeta" class="hint"></p>
+        </form>
+        <button id="resetDemo" class="outline-button danger" type="button">Réinitialiser toutes les données de démonstration</button>
+      </section>
+
+      <footer><strong>MaquisPro</strong> — Une solution IGC • <span>Version web de démonstration, non connectée à Firebase</span></footer>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigation rapide">
+      <button class="nav-btn selected" data-view="accueil"><span>⌂</span>Accueil</button>
+      <button class="nav-btn" data-view="scan"><span>▣</span>Scanner</button>
+      <button class="nav-btn" data-view="stock"><span>▰</span>Stock</button>
+      <button class="nav-btn" data-view="inventaire"><span>☷</span>Inventaire</button>
+      <button class="nav-btn" data-view="parametres"><span>⚙</span>Profil</button>
+    </nav>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
