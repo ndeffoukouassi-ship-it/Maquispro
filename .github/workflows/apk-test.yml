@@ -27,7 +27,7 @@ jobs:
           cache: true
       - name: Generer le projet Android
         run: flutter create --platforms=android --org com.igc --project-name maquispro .
-      - name: Nom public et autorisation camera
+      - name: Retirer le test modele genere par Flutter\n        run: rm -f test/widget_test.dart\n      - name: Nom public et autorisation camera
         run: |
           sed -i 's/android:label="maquispro"/android:label="MaquisPro"/' android/app/src/main/AndroidManifest.xml
           sed -i '/<manifest /a\    <uses-permission android:name="android.permission.CAMERA" />' android/app/src/main/AndroidManifest.xml
