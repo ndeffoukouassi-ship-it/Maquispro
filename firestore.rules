@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function memberPath(maquisId) {
+      return /databases/$(database)/documents/maquis/$(maquisId)/membres/$(request.auth.uid);
+    }
+
+    function maquisPath(maquisId) {
+      return /databases/$(database)/documents/maquis/$(maquisId);
+    }
+
+    function isMember(maquisId) {
+      return signedIn() &&
+        exists(memberPath(maquisId)) &&
+        get(memberPath(maquisId)).data.actif == true;
+    }
+
+    function hasRole(maquisId, acceptedRoles) {
+      return isMember(maquisId) &&
+        get(memberPath(maquisId)).data.role in acceptedRoles;
+    }
+
+    function activeMaquis(maquisId) {
+      return exists(maquisPath(maquisId)) &&
+        get(maquisPath(maquisId)).data.statut == 'actif';
+    }
+
+    function activeMember(maquisId) {
+      return isMember(maquisId) && activeMaquis(maquisId);
+    }
+
+    function activeManager(maquisId) {
+      return activeMaquis(maquisId) &&
+        hasRole(maquisId, ['proprietaire', 'gerant']);
+    }
+
+    // Création des clients, membres, licences et activation : backend IGC uniquement.
+    // Le SDK Admin du backend contourne ces règles et exige IAM dédié.
+    match /maquis/{maquisId} {
+      allow get: if isMember(maquisId);
+      allow list, create, delete: if false;
+      allow update: if hasRole(maquisId, ['proprietaire']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nom', 'telephone', 'adresse', 'ville', 'logoUrl'
+        ]) &&
+        request.resource.data.nom is string &&
+        request.resource.data.nom.size() > 0 &&
+        request.resource.data.nom.size() <= 80 &&
+        request.resource.data.telephone is string &&
+        request.resource.data.ville is string &&
+        request.resource.data.adresse is string;
+    }
+
+    match /maquis/{maquisId}/membres/{uid} {
+      allow get: if isMember(maquisId) &&
+        (uid == request.auth.uid ||
+         hasRole(maquisId, ['proprietaire', 'gerant']));
+      allow list: if hasRole(maquisId, ['proprietaire', 'gerant']);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/licence/{licenceId} {
+      allow read: if hasRole(maquisId, ['proprietaire']);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/boissons/{boissonId} {
+      allow read: if activeMember(maquisId);
+      // Les prix, stocks et codes-barres changent uniquement via backend fiable.
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/ventes/{venteId} {
+      allow get, list: if activeManager(maquisId) ||
+        (activeMember(maquisId) &&
+          resource.data.serveurUid == request.auth.uid);
+      // Un scan = vente + décrément stock + caisse : transaction serveur.
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/caisse/{jourId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/depenses/{depenseId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/inventaires/{inventaireId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/rapports/{rapportId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/mouvements_stock/{mouvementId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/entrees_stock/{entreeId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/fournisseurs/{fournisseurId} {
+      allow read: if activeManager(maquisId);
+      allow write: if false;
+    }
+
+    match /maquis/{maquisId}/configuration/{configId} {
+      allow read: if activeMember(maquisId);
+      allow write: if false;
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && uid == request.auth.uid;
+      allow list, write: if false;
+    }
+
+    // Fermeture par défaut, y compris sous-collections imprévues.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
