@@ -4,6 +4,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'database.dart';
 import 'models.dart';
+import 'maquis_profile.dart';
+import 'maquis_setup.dart';
 
 const green = Color(0xFF08623F);
 const darkGreen = Color(0xFF064430);
@@ -48,6 +50,8 @@ class MaquisHome extends StatefulWidget {
 
 class _MaquisHomeState extends State<MaquisHome> {
   MaquisSnapshot? snapshot;
+  MaquisProfile? profile;
+  bool profileLoaded = false;
   int tab = 0;
   String server = 'Kouamé';
   final servers = ['Kouamé', 'Awa', 'Ibrahim', 'Marc'];
@@ -57,6 +61,30 @@ class _MaquisHomeState extends State<MaquisHome> {
   void initState() {
     super.initState();
     reload();
+    loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+    final saved = await MaquisDatabase.instance.getProfile();
+    if (mounted) setState(() {
+      profile = saved;
+      profileLoaded = true;
+    });
+  }
+
+  Future<void> editMaquisProfile() async {
+    final current = profile;
+    if (current == null) return;
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      builder: (pageContext) => MaquisSetupPage(
+        initialProfile: current,
+        onSave: (draft) async {
+          await MaquisDatabase.instance.saveProfile(draft);
+          await loadProfile();
+          if (pageContext.mounted) Navigator.of(pageContext).pop();
+        },
+      ),
+    ));
   }
 
   Future<void> reload() async {
@@ -237,14 +265,22 @@ class _MaquisHomeState extends State<MaquisHome> {
   Widget manager(MaquisSnapshot s) => ListView(
     padding: const EdgeInsets.all(14),
     children: [
+      ChampagneBackground(
+        title: profile?.name ?? 'MaquisPro',
+        subtitle: 'Espace Gérant • Caisse centrale unique',
+      ),
       Card(
-        color: darkGreen,
-        child: const Padding(
-          padding: EdgeInsets.all(18),
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Espace Responsable', style: TextStyle(color: gold, fontSize: 23, fontWeight: FontWeight.bold)),
-            SizedBox(height: 5),
-            Text('Caisse centrale unique - toutes les ventes réunies', style: TextStyle(color: Colors.white)),
+            Text('Maquis : ${profile?.name ?? ""}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Localité : ${profile?.city ?? ""}'),
+            Text('Configuration locale : ${profile?.configuredAt.toLocal().toString().substring(0, 10) ?? "—"}'),
+            const Text('Activation de licence IGC : en attente',
+              style: TextStyle(color: Color(0xFF8B6914))),
+            const Text('Démonstration locale, non synchronisée avec Firebase.',
+              style: TextStyle(fontSize: 12)),
           ]),
         ),
       ),
@@ -302,7 +338,9 @@ class _MaquisHomeState extends State<MaquisHome> {
       Card(color: darkGreen, child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Espace Employé', style: TextStyle(color: gold, fontSize: 23, fontWeight: FontWeight.bold)),
+          Text(profile?.name ?? 'MaquisPro',
+            style: const TextStyle(color: gold, fontSize: 23, fontWeight: FontWeight.bold)),
+          const Text('Espace Employé', style: TextStyle(color: Colors.white)),
           const SizedBox(height: 10),
           DropdownButton<String>(
             value: server, dropdownColor: darkGreen,
@@ -356,11 +394,25 @@ class _MaquisHomeState extends State<MaquisHome> {
 
   @override
   Widget build(BuildContext context) {
+    if (!profileLoaded) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (profile == null) {
+      return MaquisSetupPage(onSave: (draft) async {
+        await MaquisDatabase.instance.saveProfile(draft);
+        await loadProfile();
+      });
+    }
     final s = snapshot;
     return Scaffold(
       appBar: AppBar(
         title: const Text('MaquisPro', style: TextStyle(fontWeight: FontWeight.bold, color: gold)),
         actions: [
+          IconButton(
+            onPressed: editMaquisProfile,
+            icon: const Icon(Icons.store_outlined),
+            tooltip: 'Fiche du maquis',
+          ),
           IconButton(onPressed: reload, icon: const Icon(Icons.refresh), tooltip: 'Actualiser'),
         ],
       ),
