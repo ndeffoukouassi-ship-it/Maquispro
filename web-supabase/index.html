@@ -17,7 +17,7 @@
   <h1>Connexion sécurisée</h1>
   <p>Chaque gérant et chaque serveur utilise son compte personnel. Saisissez l'identifiant du maquis fourni par IGC. L'administrateur IGC peut se connecter sans cet identifiant.</p>
   <form id="loginForm" class="form">
-    <label>Identifiant du maquis (facultatif pour IGC)<input id="tenantId" name="tenant" autocomplete="organization" placeholder="Code de l'établissement"></label>
+    <label>Code du maquis — à laisser vide pour IGC<input id="tenantId" name="tenant" autocomplete="off" placeholder="Laisser vide pour Administrateur IGC"></label><p class="hint">Ce code est attribué par IGC lors de la création d’un maquis. Ne saisis pas « MAQUIS-PRO » ni le nom de ton établissement.</p>
     <label>E-mail<input id="email" name="email" type="email" autocomplete="username" required placeholder="prenom@exemple.com"></label>
     <label>Mot de passe<input id="password" name="password" type="password" autocomplete="current-password" required minlength="8"></label>
     <div class="row"><button class="gold3d" type="submit" id="login">Se connecter</button><button class="secondary3d" id="signup" type="button">Créer mon compte</button></div>
