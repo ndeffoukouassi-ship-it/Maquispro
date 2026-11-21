@@ -253,3 +253,156 @@ h1,h2,h3{line-height:1.2}h1{font:700 clamp(24px,4vw,38px) Georgia,serif;margin:6
   :is(.gold3d,.green3d,.secondary3d,.actions button,.minor)::after{display:none}
   .page:not([hidden]),.admin-overview:not([hidden]),.metrics article{animation:none!important}
 }
+
+
+/* IGC MaquisPro — palette officielle BLEU CIEL + OR, boutons premium 3D.
+   Les couleurs de statut erreur/avertissement sont volontairement conservées. */
+:root{
+  color:#123a5f;
+  background:linear-gradient(150deg,#b5ddf8 0%,#e3f6ff 51%,#9bcaf0 100%);
+  --mp-face-green-1:#359de6;
+  --mp-face-green-2:#126ba9;
+  --mp-face-green-3:#063b70;
+  --mp-gold-light:#fff5c4;
+  --mp-gold-mid:#f0ca62;
+  --mp-gold-dark:#9e762c;
+  --mp-depth:#8e6b23;
+}
+body{
+  background:radial-gradient(ellipse at 5% 5%,#fff8d555,transparent 35%),
+    linear-gradient(152deg,#c7edff,#e8f8ff 51%,#afd9f6);
+  color:#173f68;
+}
+header.top{
+  background:linear-gradient(130deg,#054779 0%,#136fae 52%,#032b5f 100%);
+  border-bottom:3px solid #f4cf6c;
+  box-shadow:0 5px 0 #ae8835,0 11px 24px #052d5675;
+}
+.brand b{color:#ffe28e}
+.brand small{color:#eff8ff}
+.brand img{
+  padding:3px;
+  background:linear-gradient(145deg,#fff0ad,#c6a24c);
+  border:2px solid #ffdb76;
+  border-radius:15px;
+  box-shadow:inset 0 1px 2px #fff9bd,0 4px 8px #022f6175;
+}
+.pilot{
+  background:linear-gradient(145deg,#fff4c4,#e6b953);
+  border:1px solid #9f7c2d;
+  color:#1c4771;
+}
+main{color:#173f68}
+.panel,.page{
+  color:#173f68;
+  background:linear-gradient(155deg,#ffffffec,#e3f4ffec 72%,#d5ecfcfa);
+  border:2px solid #dcb75d;
+  box-shadow:0 7px 0 #c6a65655,0 14px 25px #194e7c36;
+}
+h1,h2,h3{color:#0b477c}
+.panel p,.page p{line-height:1.55}
+.hint,.form label,.admin-filters label{color:#3c6484}
+input,select,textarea{
+  background:#fff;
+  color:#163d62;
+  border:1.5px solid #95bbd4;
+  box-shadow:inset 0 2px 4px #174d7210;
+}
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  border-color:#c49b32;
+  outline:3px solid #f5d87c;
+}
+.hero{
+  background:linear-gradient(132deg,#044575,#1683be 53%,#032f64);
+  border:3px solid #f2c962;
+  box-shadow:inset 0 2px 4px #f7f6ff4d,0 7px 0 #b88d33,0 15px 24px #083b6a75;
+}
+.hero img{
+  border:2px solid #f2d47e;
+  box-shadow:0 5px 13px #002c5066;
+}
+.hero p,.hero small{color:#eaf6ff}
+.eyebrow{
+  color:#113f70;
+  background:linear-gradient(#fff9d9,#edc45f);
+  border:1px solid #c79e3e;
+  box-shadow:0 3px 0 #9b722a;
+}
+.metrics article,.admin-kpis div{
+  color:#174c76;
+  background:linear-gradient(145deg,#fffef8,#e1f3ff 75%,#d4edff);
+  border:2px solid #d4ae4f;
+  box-shadow:inset 0 2px 1px white,0 5px 0 #b99a4a,0 10px 16px #0b43804a;
+}
+.metrics small,.admin-kpis small{color:#456b88}
+.metrics strong,.admin-kpis strong{color:#0a4171}
+.card,.admin-overview{
+  background:linear-gradient(165deg,#fff,#eaf6ff 75%,#dceffa);
+  border-color:#d5b65d;
+  color:#173f68;
+}
+.admin-pricing span{
+  background:linear-gradient(150deg,#f9fdff,#d5edff);
+  border-color:#d1af5b;
+  color:#315e83;
+}
+.admin-pricing b,.admin-overview-title h3,.admin-status{color:#124d7a}
+.admin-status{background:#d9effe}
+.admin-status-bientot,.admin-status-en_attente{background:#fff3c5;color:#81561c}
+.admin-status-expire,.admin-status-suspendu{background:#ffe7e7;color:#a12829}
+.admin-status-inconnu{background:#eee8fa;color:#65547b}
+th{
+  background:linear-gradient(145deg,#07538c,#063260);
+  color:#fff7de;
+}
+td{border-bottom-color:#d3e7f1}
+td strong,.page b{color:#0a4a79}
+#cashToday{color:#0a4a79}
+footer{
+  background:linear-gradient(130deg,#063662,#075b95);
+  color:#eff9ff;
+  border-top:2px solid #d8b256;
+}
+.green3d,.actions button{
+  background:linear-gradient(150deg,var(--mp-face-green-1) 0%,var(--mp-face-green-2) 44%,var(--mp-face-green-3) 100%);
+  border-color:#f5d377;
+  color:#fff;
+  text-shadow:0 2px 2px #032b5590;
+  box-shadow:inset 0 2px 2px #e7f7ff99,inset 0 -3px 8px #002c58a9,
+    0 6px 0 #a17b2d,0 11px 18px #05396270;
+}
+.secondary3d,.minor{
+  background:linear-gradient(160deg,#fafefe,#e2f4ff 68%,#b9dbf4);
+  color:#134e7f;
+  border-color:#d3ac4c;
+  text-shadow:0 1px 0 white;
+  box-shadow:inset 0 2px 1px #fff,0 4px 0 #b18e37,0 8px 12px #0639633d;
+}
+.gold3d{
+  background:linear-gradient(160deg,#fff8d6 0%,#f5d76e 38%,#d7a73c 77%,#ae7f25);
+  border-color:#b08629;
+  color:#0b4374;
+  box-shadow:inset 0 2px 2px #fffbe4,0 6px 0 #9e7425,0 11px 17px #0839614a;
+}
+.topright .minor{
+  background:linear-gradient(148deg,#277fb5,#07497d 75%,#032f5f);
+  border:2px solid #f2cf72;
+  color:#fff9e4;
+  box-shadow:inset 0 1px 2px #e0f4ff66,0 4px 0 #a38131,0 8px 12px #05274c66;
+}
+.actions button.is-current,.actions button[aria-pressed="true"]{
+  background:linear-gradient(155deg,#fff6bf,#ecc15a 56%,#b88828);
+  color:#0a4473;
+  border-color:#98712a;
+  text-shadow:0 1px 0 #fffce5;
+  box-shadow:inset 0 2px 2px #fff8df,0 3px 0 #9b722b,0 7px 13px #0c407164;
+}
+.auth-email-help{
+  background:linear-gradient(150deg,#fff9e6,#eaf5ff);
+  border-color:#d5b158;
+  color:#655020;
+}
+@media(max-width:580px){
+  .hero{background:linear-gradient(150deg,#064474,#1676b4,#042f61)}
+  .admin-overview{padding:12px}
+}
