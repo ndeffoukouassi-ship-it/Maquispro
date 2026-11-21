@@ -32,6 +32,36 @@ class MaquisProApp extends StatelessWidget {
       scaffoldBackgroundColor: blue,
       colorScheme: ColorScheme.fromSeed(seedColor: green, primary: green, secondary: gold),
       appBarTheme: const AppBarTheme(backgroundColor: darkGreen, foregroundColor: Colors.white),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 5,
+        shadowColor: const Color(0x44002A1E),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: gold, width: 1.3),
+          borderRadius: BorderRadius.circular(17),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: green, foregroundColor: Colors.white,
+          elevation: 5, shadowColor: darkGreen,
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: gold, width: 1.5),
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: darkGreen,
+          side: const BorderSide(color: gold, width: 1.6),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: darkGreen,
+        indicatorColor: gold,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
@@ -265,7 +295,7 @@ class _MaquisHomeState extends State<MaquisHome> {
   Widget manager(MaquisSnapshot s) => ListView(
     padding: const EdgeInsets.all(14),
     children: [
-      ChampagneBackground(
+      MaquisLogoBanner(
         title: profile?.name ?? 'MaquisPro',
         subtitle: 'Espace Gérant • Caisse centrale unique',
       ),
