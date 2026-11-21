@@ -52,6 +52,7 @@
   <section id="page-stock" class="page" hidden>
     <h2>Stock de boissons en temps réel</h2>
     <div class="tableScroll"><table><thead><tr><th>Boisson</th><th>Prix d'achat</th><th>Prix de vente</th><th>Stock</th><th>Code-barres</th></tr></thead><tbody id="stockRows"></tbody></table></div>
+    <section class="catalogue-export card" id="catalogueExportPanel"><div><h3>Exporter le catalogue des boissons</h3><p>Nom des boissons, prix d'achat et prix de vente de cet établissement. Réservé au Gérant.</p></div><div class="catalogue-export-buttons"><button id="exportExcel" type="button" class="gold3d">Exporter Excel (.xlsx)</button><button id="exportWord" type="button" class="green3d">Exporter Word (.docx)</button></div></section>
     <div id="stockManager" class="grid">
       <form id="addDrinkForm" class="card form"><h3>Nouvelle boisson</h3>
         <label>Nom<input name="nom" required></label><label>Code EAN vérifié (facultatif)<input name="codeBarres" inputmode="numeric"></label>
