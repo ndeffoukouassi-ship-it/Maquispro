@@ -428,3 +428,41 @@ grant execute on function public.mp_inventaire(uuid,text,jsonb) to authenticated
 -- Realtime : après tests, ajouter les tables à la publication supabase_realtime.
 -- Une activation prématurée peut exposer des changements si les permissions sont mal réglées.
 -- alter publication supabase_realtime add table public.mp_boissons,public.mp_ventes,public.mp_caisse;
+
+
+-- Tableau de bord serveur agrégé côté PostgreSQL : éviter des milliers de
+-- lignes de vente transférées aux téléphones pour calculer la caisse.
+create or replace function public.mp_tableau_de_bord(p_maquis uuid)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $$
+declare v_role text;v_today date;v_count bigint;v_revenue bigint;v_gross bigint;
+  v_expenses bigint;v_stock bigint;v_cash bigint;v_mobile bigint;
+begin
+  v_role:=public.mp_role(p_maquis);
+  if v_role is null then raise exception 'Accès interdit';end if;
+  v_today:=(now() at time zone 'Africa/Abidjan')::date;
+  if v_role='serveur' then
+    select count(*),coalesce(sum(prix_vente),0),0::bigint into v_count,v_revenue,v_gross
+      from public.mp_ventes where maquis_id=p_maquis and jour_caisse=v_today
+        and serveur_uid=auth.uid();
+    v_expenses:=0;v_cash:=0;v_mobile:=0;
+  else
+    select count(*),coalesce(sum(prix_vente),0),coalesce(sum(benefice_brut),0)
+      into v_count,v_revenue,v_gross
+      from public.mp_ventes where maquis_id=p_maquis and jour_caisse=v_today;
+    select coalesce(sum(montant),0) into v_expenses from public.mp_depenses
+      where maquis_id=p_maquis and (cree_le at time zone 'Africa/Abidjan')::date=v_today;
+    select coalesce(recettes_declarees,0),coalesce(mobile_non_verifie,0)
+      into v_cash,v_mobile from public.mp_caisse
+      where maquis_id=p_maquis and jour=v_today;
+  end if;
+  select coalesce(sum(stock),0) into v_stock from public.mp_boissons
+    where maquis_id=p_maquis and actif=true;
+  return jsonb_build_object('jour',v_today,'nombreVentes',v_count,'recettes',v_revenue,
+    'beneficeBrut',v_gross,'depenses',v_expenses,'beneficeNetEstime',v_gross-v_expenses,
+    'stock',v_stock,'caisse',coalesce(v_cash,0),'mobileNonVerifie',coalesce(v_mobile,0),
+    'portee',case when v_role='serveur' then 'mes_ventes' else 'maquis' end);
+end; $$;
+
+revoke all on function public.mp_tableau_de_bord(uuid) from public,anon;
+grant execute on function public.mp_tableau_de_bord(uuid) to authenticated;
