@@ -2,12 +2,13 @@ name: MaquisPro Supabase — Validation du pilote
 
 on:
   push:
-    branches: [supabase-multi-maquis]
+    branches: [supabase-multi-maquis, igc-admin-dashboard]
     paths:
       - 'web-supabase/**'
       - 'supabase/**'
       - 'tests/supabase-*.sql'
       - 'tests/catalog-export-supabase.test.mjs'
+      - 'tests/igc-admin-dashboard.test.mjs'
       - '.github/workflows/supabase-pilot-ci.yml'
   workflow_dispatch:
 
@@ -25,14 +26,15 @@ jobs:
         run: |
           node --check web-supabase/src/main.js
           node --check web-supabase/src/catalog-export.js
+          node --check web-supabase/src/admin-summary.mjs
       - name: Installer les dépendances
         run: npm install --no-audit --no-fund
         working-directory: web-supabase
       - name: Compiler le pilote web MaquisPro
         run: npm run build
         working-directory: web-supabase
-      - name: Vérifier exports Excel et Word
-        run: node --test tests/catalog-export-supabase.test.mjs
+      - name: Vérifier exports Excel Word et suivi des abonnements IGC
+        run: node --test tests/catalog-export-supabase.test.mjs tests/igc-admin-dashboard.test.mjs
 
   postgres:
     runs-on: ubuntu-latest
