@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, getIdTokenResult } from 'firebase/auth';
 import { getFirestore, doc, collection, onSnapshot, query, where } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { exportCatalogue } from './catalog-export.js';
 import './style.css';
 
 const $=s=>document.querySelector(s);
@@ -99,12 +100,14 @@ async function enterMaquis(uid,maquisId){
   $('#authPanel').hidden=true;$('#appPanel').hidden=false;
   $('#logout').hidden=false;$('#connection').textContent='Connecté à Firebase';
   if(state.role==='serveur'){
+    $('#catalogueExportPanel').hidden=true;
     $('#stockManager').hidden=true;
     $('#expenseManager').hidden=true;
     $('#teamForm').hidden=true;
     $('#inventoryForm').hidden=true;
     $$('.actions button').filter(b=>!['scan','stock','rapports'].includes(b.dataset.page)).forEach(b=>b.hidden=true);
   }else{
+    $('#catalogueExportPanel').hidden=false;
     $('#stockManager').hidden=false;$('#expenseManager').hidden=false;
     $('#inventoryForm').hidden=false;
     $$('.actions button').forEach(b=>b.hidden=false);
@@ -184,6 +187,15 @@ async function startCamera(){
   },600);
 }
 function bind(){
+  async function catalogueDownload(format){
+    if(!['proprietaire','gerant'].includes(state.role))return status("Seul le gérant peut exporter les tarifs d'achat.",true);
+    try{
+      const fileName=exportCatalogue(state.products, state.maquis?.nom||'MaquisPro',format);
+      status("Catalogue du maquis exporté : "+fileName);
+    }catch(e){status("Export impossible : "+errorMessage(e),true);}
+  }
+  $('#exportExcel').addEventListener('click',()=>catalogueDownload('xlsx'));
+  $('#exportWord').addEventListener('click',()=>catalogueDownload('docx'));
   $('#loginForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const f=e.currentTarget;
