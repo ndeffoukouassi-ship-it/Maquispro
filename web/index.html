@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#064633">
   <meta name="description" content="MaquisPro par IGC — Démonstration de gestion de boissons, stock, inventaires et caisse centrale.">
   <title>MaquisPro | Démonstration IGC</title>
-  <link rel="icon" type="image/jpeg" href="./champagne.jpg">
+  <link rel="icon" type="image/svg+xml" href="./logo-maquispro.svg">
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
 </head>
@@ -22,11 +22,14 @@
 
     <main>
       <section class="hero">
-        <img class="champagne" src="./champagne.jpg" alt="Bouteille de champagne générique, vert et or" />
+        <div class="hero-logo-box">
+          <img class="maquis-logo" src="./logo-maquispro.svg" alt="Logo MaquisPro vert émeraude et or" />
+        </div>
+        <div class="hero-divider" aria-hidden="true"></div>
         <div class="hero-text">
           <span class="gold-ribbon">✦ Espace Gérant</span>
           <h1 id="heroMaquis">Votre maquis</h1>
-          <p>Ventes, stock et bénéfices sous contrôle.</p>
+          <p>Vos ventes, stocks, inventaires et bénéfices au même endroit.</p>
           <span class="activation">Activation commerciale : <strong>non activée</strong></span>
           <small id="configured">Fiche à personnaliser</small>
         </div>
@@ -46,6 +49,12 @@
         <button class="button-3d" data-view="caisse"><span>▤</span>Caisse</button>
         <button class="button-3d" data-view="rapports"><span>▥</span>Rapports</button>
       </nav>
+      <div class="inventory-shortcuts" aria-label="Raccourcis inventaires">
+        <span class="inventory-title">▰ Inventaires</span>
+        <button type="button" class="gold-button period-shortcut" data-period="jour">Journalier</button>
+        <button type="button" class="gold-button period-shortcut" data-period="semaine">Semaine</button>
+        <button type="button" class="gold-button period-shortcut" data-period="mois">Mois</button>
+      </div>
 
       <section class="panel shown" id="view-accueil" aria-labelledby="tAccueil">
         <div class="panel-head"><h2 id="tAccueil">Tableau de bord</h2><span class="subtle">Bilan du test local</span></div>
