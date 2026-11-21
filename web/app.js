@@ -126,6 +126,16 @@ $(".period-shortcut").forEach(button=>button.addEventListener("click",()=>{
 }));
 $("#settingsBtn").onclick=()=>view("parametres");$("#menuBtn").onclick=()=>view("accueil");
 $("#period").onchange=renderInventory;
+// Exports natifs XLSX et DOCX du catalogue local (aucun transfert de données).
+async function downloadCatalogue(format){
+ try{
+   const {exportCatalogue}=await import("./catalog-export.mjs");
+   const file=exportCatalogue(state.products.map(p=>({name:p.name,buy:p.buy,sell:p.sell})),state.profile?.name||"MaquisPro",format);
+   toast("Fichier créé : "+file);
+ }catch(e){toast("Export impossible : "+(e.message||e),true);}
+}
+$("#exportExcel").onclick=()=>downloadCatalogue("xlsx");
+$("#exportWord").onclick=()=>downloadCatalogue("docx");
 $("#inventoryTable").addEventListener("input",e=>{
  if(!e.target.classList.contains("physical-count"))return;
  const id=e.target.dataset.id,x=inventoryRows().find(p=>p.prod.id===id);
