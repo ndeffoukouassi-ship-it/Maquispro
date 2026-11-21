@@ -303,11 +303,38 @@ function bind(){
     const f=$('#loginForm');
     try{
       const {data,error}=await client.auth.signUp({
-        email:f.elements.email.value.trim(),password:f.elements.password.value
+        email:f.elements.email.value.trim(),
+        password:f.elements.password.value,
+        options:{emailRedirectTo:window.location.origin}
       });
       if(error)throw error;
       status(data.session?'Compte créé : demande à IGC ton accès au maquis.':'Vérifie ton e-mail pour confirmer le compte, puis contacte IGC.');
     }catch(e){status(errorText(e),true);}
+  });
+  // Confirmation d'adresse e-mail : pas de nouveau compte créé.
+  $('#resendConfirm').addEventListener('click',async()=>{
+    if(!configured||!backendReady)return status('Service Supabase indisponible.',true);
+    const email=$('#email').value.trim();
+    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+      status('Renseigne seulement ton adresse e-mail, puis clique sur Renvoyer.',true);
+      return;
+    }
+    const btn=$('#resendConfirm');
+    btn.disabled=true;
+    try{
+      const {error}=await client.auth.resend({
+        type:'signup',
+        email,
+        options:{emailRedirectTo:window.location.origin}
+      });
+      if(error)throw error;
+      status('Un nouveau courriel de confirmation a été demandé. Consulte ta boîte de réception et les spams.');
+    }catch(e){
+      const text=(e?.message||'').toLowerCase();
+      status(text.includes('rate limit')||text.includes('too many')||text.includes('email rate')
+        ?'Limite d’e-mails Supabase atteinte. Réessaie après sa réinitialisation, sans multiplier les demandes.'
+        :errorText(e),true);
+    }finally{btn.disabled=false;}
   });
   $('#logout').onclick=async()=>{if(client)await client.auth.signOut();resetUI();
     state.user=null;state.admin=false;state.adminClients=[];$('#adminPanel').hidden=true;$('#authPanel').hidden=false;$('#logout').hidden=true;status('Déconnecté.');};
