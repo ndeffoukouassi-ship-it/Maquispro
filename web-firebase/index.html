@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#064831">
+<title>MaquisPro — Comptes sécurisés Firebase (pilote)</title>
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
+</head><body>
+<header class="top">
+  <div class="brand"><img src="/logo.svg" alt="Logo MaquisPro"><span>Maquis<b>Pro</b><small>IGC — Gestion des boissons</small></span></div>
+  <div class="topright"><span class="pilot">PILOTE CONNECTÉ</span><button id="logout" class="minor" hidden>Se déconnecter</button></div>
+</header>
+<main>
+<div class="notice" id="configWarning" hidden>La configuration Firebase du projet n'est pas encore ajoutée sur Render. Ce pilote n'est pas activé.</div>
+<div class="notice" id="status">Connexion Firebase en cours de préparation.</div>
+<section id="authPanel" class="panel">
+  <h1>Connexion sécurisée</h1>
+  <p>Chaque gérant et chaque serveur utilise son compte personnel. Saisissez l'identifiant du maquis fourni par IGC.</p>
+  <form id="loginForm" class="form">
+    <label>Identifiant du maquis<input id="tenantId" name="tenant" autocomplete="organization" required placeholder="Code de l'établissement"></label>
+    <label>E-mail<input id="email" name="email" type="email" autocomplete="username" required placeholder="prenom@exemple.com"></label>
+    <label>Mot de passe<input id="password" name="password" type="password" autocomplete="current-password" required minlength="8"></label>
+    <div class="row"><button class="gold3d" type="submit" id="login">Se connecter</button><button class="secondary3d" id="signup" type="button">Créer mon compte</button></div>
+  </form>
+  <p class="hint">L'inscription ne donne aucun accès à un maquis tant qu'IGC ou son propriétaire ne vous y a pas autorisé.</p>
+</section>
+<section id="appPanel" hidden>
+  <div class="hero">
+    <img src="/logo.svg" alt="">
+    <div><span class="eyebrow" id="roleName">Espace</span><h1 id="maquisName">Votre maquis</h1>
+      <p>Gestion synchronisée entre les téléphones autorisés</p><small id="licenceStatus">Statut en vérification</small>
+    </div>
+  </div>
+  <div class="metrics">
+    <article><small>Ventes déclarées</small><strong id="metricSales">0</strong></article>
+    <article><small>Recettes déclarées</small><strong id="metricRevenue">0 F</strong></article>
+    <article><small>Bénéfice brut estimé</small><strong id="metricMargin">0 F</strong></article>
+    <article><small>Stock disponible</small><strong id="metricStock">0</strong></article>
+  </div>
+  <nav class="actions"><button data-page="scan">▣ Scanner</button><button data-page="stock">▰ Stock</button><button data-page="caisse">▤ Caisse</button><button data-page="inventaire">☷ Inventaire</button><button data-page="rapports">▥ Rapports</button><button data-page="equipe">♟ Équipe</button></nav>
+  <section id="page-scan" class="page">
+    <h2>Scan direct — vente d'une bouteille</h2>
+    <p class="hint">Le client paie d'abord ; le serveur dépose l'argent en caisse, puis scanne. Le scan déclare la vente ; ce n'est pas une preuve bancaire.</p>
+    <form id="saleForm" class="form card">
+      <label>Mode de paiement déclaré<select id="paymentMethod"><option value="especes">Espèces déposées</option><option value="wave">Wave (déclaration non vérifiée)</option><option value="orange_money">Orange Money (déclaration non vérifiée)</option><option value="mtn_money">MTN Money (déclaration non vérifiée)</option></select></label>
+      <button id="startCamera" class="green3d" type="button">▣ Ouvrir la caméra et scanner</button>
+      <video id="video" playsinline muted hidden></video>
+      <button id="stopCamera" class="minor" type="button" hidden>Arrêter la caméra</button>
+      <label>Code-barres (saisie de secours)<input id="barcode" inputmode="numeric" autocomplete="off" placeholder="Numéro exact figurant sur la bouteille"></label>
+      <button class="gold3d" type="submit">Enregistrer le scan saisi</button>
+    </form><p id="scanMessage" aria-live="polite" class="result"></p>
+  </section>
+  <section id="page-stock" class="page" hidden>
+    <h2>Stock de boissons en temps réel</h2>
+    <div class="tableScroll"><table><thead><tr><th>Boisson</th><th>Prix d'achat</th><th>Prix de vente</th><th>Stock</th><th>Code-barres</th></tr></thead><tbody id="stockRows"></tbody></table></div>
+    <div id="stockManager" class="grid">
+      <form id="addDrinkForm" class="card form"><h3>Nouvelle boisson</h3>
+        <label>Nom<input name="nom" required></label><label>Code EAN vérifié (facultatif)<input name="codeBarres" inputmode="numeric"></label>
+        <label>Prix d'achat (FCFA)<input type="number" name="prixAchat" min="0" step="1" required></label>
+        <label>Prix de vente (FCFA)<input type="number" name="prixVente" min="1" step="1" required></label>
+        <button class="green3d">Ajouter au catalogue</button></form>
+      <form id="stockForm" class="card form"><h3>Approvisionnement</h3>
+        <label>Boisson<select id="stockSelect" name="boissonId"></select></label>
+        <label>Nombre de bouteilles<input type="number" name="quantite" min="1" step="1" required></label>
+        <label>Prix d'achat fournisseur<input type="number" name="coutUnitaire" min="0" step="1" required></label>
+        <button class="green3d">Ajouter au stock</button></form>
+    </div>
+  </section>
+  <section id="page-caisse" class="page" hidden><h2>Caisse centrale unique</h2><div class="card">
+    <strong id="cashToday">0 F</strong><p>Recettes déclarées aujourd'hui, par tous les serveurs.</p><small id="cashNote">Paiements mobiles : non vérifiés sans API de prestataire.</small>
+  </div></section>
+  <section id="page-inventaire" class="page" hidden><h2>Comptage physique des boissons</h2>
+    <p>Les quantités comptées sont consignées et les écarts signalés ; aucun stock n'est corrigé automatiquement.</p>
+    <form class="card form" id="inventoryForm">
+      <label>Période<select name="periodeType"><option value="jour">Journalier</option><option value="semaine">Semaine</option><option value="mois">Mois</option></select></label>
+      <div id="inventoryFields"></div>
+      <button class="gold3d">Enregistrer l'inventaire</button>
+    </form>
+  </section>
+  <section id="page-rapports" class="page" hidden><h2>Ventes et bénéfices</h2>
+    <div class="card"><p>Chiffre d'affaires : <b id="reportRevenue">0 F</b></p><p>Coût d'achat estimé des bouteilles vendues : <b id="reportCost">0 F</b></p><p>Bénéfice brut estimé : <b id="reportGross">0 F</b></p><p>Charges enregistrées : <b id="reportExpenses">0 F</b></p><p>Bénéfice net estimé : <b id="reportNet">0 F</b></p></div>
+    <div id="expenseManager" class="card"><h3>Enregistrer une dépense</h3><form id="expenseForm" class="form"><label>Motif<input name="libelle" required></label><label>Montant FCFA<input name="montant" type="number" step="1" min="1" required></label><button class="green3d">Ajouter une dépense</button></form></div>
+    <h3>Historique des ventes</h3><div id="salesList" class="card"></div>
+  </section>
+  <section id="page-equipe" class="page" hidden><h2>Personnel et accès</h2>
+    <p class="hint">Un collaborateur doit d'abord disposer d'un compte Firebase, puis être autorisé par le propriétaire du maquis.</p>
+    <form id="teamForm" class="card form"><label>E-mail du collaborateur<input type="email" name="email" required></label>
+      <label>Rôle<select name="role"><option value="serveur">Serveur</option><option value="gerant">Gérant</option></select></label>
+      <button class="green3d">Donner accès au maquis</button></form>
+  </section>
+</section>
+<section id="adminPanel" hidden class="panel"><h2>Administration IGC</h2><p>Réservé aux comptes munis du droit d'administrateur plateforme.</p>
+  <form id="createMaquisForm" class="form card"><h3>Inscrire un maquis</h3>
+    <label>Nom du maquis<input name="nom" required></label><label>E-mail du propriétaire<input type="email" name="ownerEmail" required></label>
+    <label>Téléphone<input name="telephone" required></label><label>Ville<input name="ville" required></label>
+    <button class="green3d">Créer (en attente d'activation)</button></form>
+  <form id="activateForm" class="form card"><h3>Activer une licence</h3>
+    <label>ID du maquis<input name="maquisId" required></label>
+    <button class="gold3d">Activer le maquis</button>
+  </form>
+</section>
+</main>
+<footer>MaquisPro • IGC — Version Firebase pilote : pas de paiement intégré ni de crédit. <span id="connection">Non connecté</span></footer>
+</body></html>
