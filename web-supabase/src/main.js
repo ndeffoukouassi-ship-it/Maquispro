@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { exportCatalogue } from './catalog-export.js';
+import {resumeParc,filtrerParc,TARIFS_IGC} from './admin-summary.mjs';
 import './style.css';
 
 const $=s=>document.querySelector(s);
@@ -18,6 +19,7 @@ const client=configured?createClient(url,key,{auth:{persistSession:true,autoRefr
 const state={
   user:null,role:null,maquis:null,tenant:null,admin:false,products:[],sales:[],
   stats:{},refreshing:false,generation:0,channel:null,refreshTimer:null,
+  adminClients:[],adminLoading:false,adminTruncated:false,
   stream:null,scanTimer:null,scanning:false,pendingId:null,pendingCode:null
 };
 function status(message,bad=false){
@@ -60,6 +62,57 @@ function showPage(page){
   }
   $$('.page').forEach(x=>x.hidden=x.id!=='page-'+page);
   if(page!=='scan')void stopCamera();
+}
+// Suivi commercial IGC : lecture seule et filtrée par les règles RLS Supabase.
+const displayDate=value=>{
+  const date=value?new Date(value):null;
+  return date&&Number.isFinite(date.getTime())
+    ?date.toLocaleDateString('fr-FR',{timeZone:'Africa/Abidjan',day:'2-digit',month:'2-digit',year:'numeric'})
+    :'—';
+};
+function renderAdminClients(){
+  if(!state.admin)return;
+  const stats=resumeParc(state.adminClients);
+  $('#adminTotal').textContent=stats.total;
+  $('#adminActive').textContent=stats.actifs;
+  $('#adminDue').textContent=stats.aRenouveler;
+  $('#adminPending').textContent=stats.enAttente;
+  $('#adminExpired').textContent=stats.expires;
+  $('#adminSuspended').textContent=stats.suspendus;
+  const rows=filtrerParc(state.adminClients,$('#adminSearch').value,$('#adminFilter').value);
+  $('#adminRows').innerHTML=rows.length?rows.map(m=>{
+    const status=m.licence;
+    const period=m.periode_abonnement==='annuel'?'Annuel':m.periode_abonnement==='mensuel'?'Mensuel':'Non choisie';
+    const renewal=status.days!==null&&status.days>=0&&status.key==='bientot'?' ('+status.days+' j)':'';
+    return '<tr><td><strong>'+esc(m.nom)+'</strong><small>'+esc(m.ville||'Ville non renseignée')+'</small><code>'+esc(m.id)+'</code></td>'+
+      '<td>'+period+'</td><td><span class="admin-status admin-status-'+esc(status.key)+'">'+esc(status.label)+renewal+'</span></td>'+
+      '<td>'+displayDate(m.expire_le)+'</td><td><button class="secondary3d admin-select" type="button" data-admin-select="'+esc(m.id)+'">'+
+      (status.key==='en_attente'?'Préparer activation':'Préparer renouvellement')+'</button></td></tr>';
+  }).join(''):'<tr><td colspan="5">Aucun maquis dans ce filtre.</td></tr>';
+  const countText=rows.length+' établissement(s) affiché(s) sur '+stats.total+'.';
+  $('#adminCountNote').textContent=countText+
+    (state.adminTruncated?' Affichage limité aux 500 établissements les plus récents.':'')+
+    ' Les montants sont des tarifs contractuels, pas des paiements vérifiés. Les ventes réelles restent verrouillées.';
+}
+async function loadAdminClients(){
+  if(!client||!state.admin||state.adminLoading)return;
+  state.adminLoading=true;
+  $('#adminRefresh').disabled=true;
+  try{
+    // L'accès global est donné uniquement aux membres de mp_igc_admins via RLS.
+    const {data,error}=await client.from('mp_maquis')
+      .select('id,nom,ville,statut,periode_abonnement,active_le,expire_le,cree_le,installation_fcfa,mensualite_fcfa,annuel_fcfa')
+      .order('cree_le',{ascending:false}).limit(501);
+    if(error)throw error;
+    state.adminTruncated=(data||[]).length>500;
+    state.adminClients=(data||[]).slice(0,500);
+    renderAdminClients();
+  }catch(e){
+    status('Liste des clients inaccessible : '+errorText(e),true);
+  }finally{
+    state.adminLoading=false;
+    $('#adminRefresh').disabled=false;
+  }
 }
 function render(){
   const s=state.stats,p=state.products;
@@ -152,14 +205,16 @@ async function enterAfterAuth(user){
   $('#logout').hidden=false;
   const admin=await rpc('mp_est_admin_igc');
   state.admin=admin===true;
+  state.adminClients=[];
   $('#adminPanel').hidden=!state.admin;
+  if(state.admin)await loadAdminClients();
   const tenant=sessionStorage.getItem('mp_tenant')||$('#tenantId').value.trim();
   if(tenant){
     try{await enterTenant(tenant);}
     catch(e){status(errorText(e),true);$('#authPanel').hidden=false;}
   }else{
-    $('#authPanel').hidden=false;
-    status(state.admin?'Administrateur IGC connecté. Crée un maquis pour commencer.'
+    $('#authPanel').hidden=state.admin;
+    status(state.admin?'Administrateur IGC connecté. Consulte le parc clients ou inscris un maquis.'
       :'Compte connecté. Saisis le code du maquis attribué par IGC.');
   }
 }
@@ -222,7 +277,9 @@ async function submitRpc(form,name,build,confirmation){
     assertOnline();
     const result=await rpc(name,build());
     form.reset();status(confirmation(result));
-    await refresh();return result;
+    await refresh();
+    if(state.admin)await loadAdminClients();
+    return result;
   }catch(e){status(errorText(e),true);return null;}
 }
 function bind(){
@@ -253,7 +310,7 @@ function bind(){
     }catch(e){status(errorText(e),true);}
   });
   $('#logout').onclick=async()=>{if(client)await client.auth.signOut();resetUI();
-    state.user=null;state.admin=false;$('#adminPanel').hidden=true;$('#authPanel').hidden=false;$('#logout').hidden=true;status('Déconnecté.');};
+    state.user=null;state.admin=false;state.adminClients=[];$('#adminPanel').hidden=true;$('#authPanel').hidden=false;$('#logout').hidden=true;status('Déconnecté.');};
   $$('.actions button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
   $('#saleForm').onsubmit=async e=>{
     e.preventDefault();
@@ -307,6 +364,20 @@ function bind(){
       p_email_proprietaire:data.get('ownerEmail')
     }),id=>'Maquis créé en attente de paiement : code '+id);
   };
+  $('#adminRefresh').addEventListener('click',()=>void loadAdminClients());
+  $('#adminSearch').addEventListener('input',renderAdminClients);
+  $('#adminFilter').addEventListener('change',renderAdminClients);
+  $('#adminRows').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-admin-select]');
+    if(!state.admin||!b||!uuidRE.test(b.dataset.adminSelect))return;
+    const item=state.adminClients.find(m=>m.id===b.dataset.adminSelect);
+    if(!item)return;
+    const form=$('#activateForm');
+    form.elements.maquisId.value=item.id;
+    form.elements.dureeMois.value=item.periode_abonnement==='annuel'?'12':'1';
+    form.scrollIntoView({behavior:'smooth',block:'center'});
+    status('Licence sélectionnée : '+item.nom+'. Vérifie le paiement avant toute activation.');
+  });
   $('#activateForm').onsubmit=e=>{
     e.preventDefault();const f=e.currentTarget,data=new FormData(f);
     if(!window.confirm('IGC confirme avoir vérifié le paiement ? Cette action active l’abonnement.'))return;
