@@ -215,7 +215,7 @@ as $$
 declare v_uid uuid;v_id uuid;
 begin
   if not public.mp_est_admin_igc() then raise exception 'Administrateur IGC requis';end if;
-  if length(trim(p_nom)) not between 1 and 80 then raise exception 'Nom invalide';end if;
+  if p_nom is null or length(trim(p_nom)) not between 1 and 80 then raise exception 'Nom invalide';end if;
   select u.id into v_uid from auth.users u where lower(u.email)=lower(trim(p_email_proprietaire)) limit 1;
   if v_uid is null then raise exception 'Le propriétaire doit d’abord créer son compte';end if;
   insert into public.mp_maquis(nom,ville,telephone,proprietaire_uid)
@@ -230,7 +230,7 @@ as $$
 declare v_fin timestamptz;
 begin
   if not public.mp_est_admin_igc() then raise exception 'Administrateur IGC requis';end if;
-  if p_duree_mois not in (1,12) then raise exception 'Durée : 1 ou 12 mois';end if;
+  if p_duree_mois is null or p_duree_mois not in (1,12) then raise exception 'Durée : 1 ou 12 mois';end if;
   update public.mp_maquis set
     statut='actif',periode_abonnement=case when p_duree_mois=12 then 'annuel' else 'mensuel' end,
     active_le=coalesce(active_le,now()),
@@ -245,9 +245,9 @@ returns uuid language plpgsql security definer set search_path = ''
 as $$
 declare v_uid uuid;v_role text;
 begin
-  if public.mp_role(p_maquis)<>'proprietaire' then raise exception 'Propriétaire requis';end if;
+  if not coalesce(public.mp_role(p_maquis)='proprietaire',false) then raise exception 'Propriétaire requis';end if;
   if not public.mp_est_actif(p_maquis) then raise exception 'Licence inactive';end if;
-  if p_role not in ('gerant','serveur') then raise exception 'Rôle invalide';end if;
+  if p_role is null or p_role not in ('gerant','serveur') then raise exception 'Rôle invalide';end if;
   select id into v_uid from auth.users where lower(email)=lower(trim(p_email)) limit 1;
   if v_uid is null then raise exception 'Le compte doit exister';end if;
   select role into v_role from public.mp_membres where maquis_id=p_maquis and user_id=v_uid;
@@ -264,10 +264,10 @@ returns uuid language plpgsql security definer set search_path = ''
 as $$
 declare v_id uuid;v_code text;
 begin
-  if public.mp_role(p_maquis) not in ('proprietaire','gerant') or not public.mp_est_actif(p_maquis)
+  if not coalesce(public.mp_role(p_maquis) in ('proprietaire','gerant'),false) or not public.mp_est_actif(p_maquis)
     then raise exception 'Gestionnaire ou licence active requis';end if;
-  if length(trim(p_nom)) not between 1 and 120 then raise exception 'Nom invalide';end if;
-  if p_achat<0 or p_achat>1000000000 or p_vente<1 or p_vente>1000000000
+  if p_nom is null or length(trim(p_nom)) not between 1 and 120 then raise exception 'Nom invalide';end if;
+  if p_achat is null or p_vente is null or p_achat<0 or p_achat>1000000000 or p_vente<1 or p_vente>1000000000
     then raise exception 'Prix invalides';end if;
   v_code:=nullif(trim(coalesce(p_code,'')),'');
   if v_code is not null and v_code !~ '^[0-9]{8,14}$' then raise exception 'Code-barres invalide';end if;
@@ -282,9 +282,9 @@ returns integer language plpgsql security definer set search_path = ''
 as $$
 declare v_rec public.mp_boissons%rowtype;v_stock integer;v_avg integer;
 begin
-  if public.mp_role(p_maquis) not in ('proprietaire','gerant') or not public.mp_est_actif(p_maquis)
+  if not coalesce(public.mp_role(p_maquis) in ('proprietaire','gerant'),false) or not public.mp_est_actif(p_maquis)
     then raise exception 'Accès interdit';end if;
-  if p_quantite<1 or p_quantite>100000 or p_cout_unitaire<0 or p_cout_unitaire>1000000000
+  if p_quantite is null or p_cout_unitaire is null or p_quantite<1 or p_quantite>100000 or p_cout_unitaire<0 or p_cout_unitaire>1000000000
     then raise exception 'Approvisionnement invalide';end if;
   select * into v_rec from public.mp_boissons
     where id=p_boisson and maquis_id=p_maquis and actif=true for update;
@@ -308,11 +308,11 @@ as $$
 declare v_b public.mp_boissons%rowtype;v_sale public.mp_ventes%rowtype;
   v_jour date;v_payment text;v_updated integer;
 begin
-  if public.mp_role(p_maquis) not in ('proprietaire','gerant','serveur')
+  if not coalesce(public.mp_role(p_maquis) in ('proprietaire','gerant','serveur'),false)
     or not public.mp_est_actif(p_maquis) then raise exception 'Licence ou compte non actif';end if;
   if p_code is null or p_code !~ '^[0-9]{8,14}$' then raise exception 'Code-barres incorrect';end if;
   if p_operation is null then raise exception 'Identifiant du scan requis';end if;
-  if p_paiement not in ('especes','wave','orange_money','mtn_money') then
+  if p_paiement is null or p_paiement not in ('especes','wave','orange_money','mtn_money') then
     raise exception 'Paiement déclaré invalide';end if;
   -- Un code-barres EAN appartient à une référence de boisson du même maquis.
   select * into v_b from public.mp_boissons
@@ -361,9 +361,9 @@ returns uuid language plpgsql security definer set search_path = ''
 as $$
 declare v_id uuid;
 begin
-  if public.mp_role(p_maquis) not in ('proprietaire','gerant') or not public.mp_est_actif(p_maquis)
+  if not coalesce(public.mp_role(p_maquis) in ('proprietaire','gerant'),false) or not public.mp_est_actif(p_maquis)
     then raise exception 'Accès interdit';end if;
-  if length(trim(p_libelle)) not between 1 and 140 or p_montant<1 or p_montant>1000000000
+  if p_libelle is null or p_montant is null or length(trim(p_libelle)) not between 1 and 140 or p_montant<1 or p_montant>1000000000
     then raise exception 'Dépense invalide';end if;
   insert into public.mp_depenses(maquis_id,libelle,montant,auteur_uid)
     values(p_maquis,trim(p_libelle),p_montant,auth.uid()) returning id into v_id;
@@ -374,14 +374,15 @@ create or replace function public.mp_inventaire(
   p_maquis uuid,p_periode text,p_comptages jsonb)
 returns uuid language plpgsql security definer set search_path = ''
 as $$
-declare v_id uuid;v_row record;v_b public.mp_boissons%rowtype;v_lignes jsonb:='[]'::jsonb;
+declare v_id uuid;v_row record;v_b public.mp_boissons%rowtype;v_lignes jsonb:='[]'::jsonb;v_count integer;
 begin
-  if public.mp_role(p_maquis) not in ('proprietaire','gerant') or not public.mp_est_actif(p_maquis)
+  if not coalesce(public.mp_role(p_maquis) in ('proprietaire','gerant'),false) or not public.mp_est_actif(p_maquis)
     then raise exception 'Accès interdit';end if;
-  if p_periode not in ('jour','semaine','mois')
-    or jsonb_typeof(p_comptages)<>'object'
-    or jsonb_object_length(p_comptages)>100 or jsonb_object_length(p_comptages)=0
+  if p_periode is null or p_periode not in ('jour','semaine','mois')
+    or p_comptages is null or jsonb_typeof(p_comptages)<>'object'
     then raise exception 'Comptage invalide';end if;
+  select count(*) into v_count from jsonb_object_keys(p_comptages);
+  if v_count=0 or v_count>100 then raise exception 'Nombre de boissons invalide';end if;
   for v_row in select key,value from jsonb_each_text(p_comptages) loop
     if v_row.value !~ '^[0-9]{1,9}$' then raise exception 'Quantité physique invalide';end if;
     select * into v_b from public.mp_boissons where id=v_row.key::uuid and maquis_id=p_maquis;
