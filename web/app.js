@@ -116,7 +116,14 @@ async function startCamera(){
  },650);
  }catch{stopCamera();$("#cameraStatus").textContent="Autorisation caméra refusée ou matériel indisponible.";toast("Caméra non accessible.",true);}
 }
-$$("[data-view]").forEach(b=>b.addEventListener("click",()=>view(b.dataset.view)));
+$("[data-view]").forEach(b=>b.addEventListener("click",()=>view(b.dataset.view)));
+$(".period-shortcut").forEach(button=>button.addEventListener("click",()=>{
+  const period=button.dataset.period;
+  if(!["jour","semaine","mois"].includes(period))return;
+  $("#period").value=period;
+  view("inventaire");
+  renderInventory();
+}));
 $("#settingsBtn").onclick=()=>view("parametres");$("#menuBtn").onclick=()=>view("accueil");
 $("#period").onchange=renderInventory;
 $("#inventoryTable").addEventListener("input",e=>{
