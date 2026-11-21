@@ -7,6 +7,9 @@
   <meta name="description" content="MaquisPro par IGC — Démonstration de gestion de boissons, stock, inventaires et caisse centrale.">
   <title>MaquisPro | Démonstration IGC</title>
   <link rel="icon" type="image/svg+xml" href="./logo-maquispro.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
 </head>
@@ -15,7 +18,10 @@
     <header class="topbar">
       <button class="icon-3d" type="button" id="menuBtn" aria-label="Afficher la navigation">☰</button>
       <div class="brand"><div class="crown">♛</div><span>Maquis<b>Pro</b></span><small>IGC • Impact Global Consulting</small></div>
+      <div class="header-actions">
+        <button class="install-button" id="installBtn" type="button" hidden>Installer</button>
       <button class="icon-3d" type="button" id="settingsBtn" aria-label="Fiche du maquis">⚙</button>
+      </div>
     </header>
 
     <div class="demo-banner" role="status"><span class="pill-dot"></span> MODE DÉMONSTRATION — données stockées uniquement dans ce navigateur. Ne pas utiliser pour de vraies recettes.</div>
