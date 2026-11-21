@@ -315,7 +315,7 @@ function bind(){
   $('#resendConfirm').addEventListener('click',async()=>{
     if(!configured||!backendReady)return status('Service Supabase indisponible.',true);
     const email=$('#email').value.trim();
-    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
       status('Renseigne seulement ton adresse e-mail, puis clique sur Renvoyer.',true);
       return;
     }
