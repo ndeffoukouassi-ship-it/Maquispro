@@ -15,33 +15,22 @@ select public.mp_scanner_vente(:'maquis_id'::uuid,'0123456789012',
 -- Le même ID de scan doit être idempotent.
 select public.mp_scanner_vente(:'maquis_id'::uuid,'0123456789012',
   '55555555-5555-4555-8555-555555555555'::uuid,'especes') as retry \gset
-do $$
-begin
-  if (:'receipt'::jsonb->>'prix')::int<>650 then raise exception 'Prix vente incorrect';end if;
-  if (:'receipt'::jsonb->>'marge')::int<>100 then raise exception 'Marge incorrecte';end if;
-  if (:'retry'::jsonb->>'duplicata')::boolean<>true then raise exception 'Double scan incorrect';end if;
-end $$;
+select public.test_assert((:'receipt'::jsonb->>'prix')::integer=650,'Prix de vente');
+select public.test_assert((:'receipt'::jsonb->>'marge')::integer=100,'Marge brute');
+select public.test_assert((:'retry'::jsonb->>'duplicata')::boolean=true,'Idempotence');
 -- Un serveur ne doit pas pouvoir lire les coûts d'achat bruts ou la caisse.
 select count(*) as direct_drinks from public.mp_boissons \gset
 select count(*) as direct_sales from public.mp_ventes \gset
 select count(*) as direct_cash from public.mp_caisse \gset
-do $$
-begin
-  if :direct_drinks::int<>0 or :direct_sales::int<>0 or :direct_cash::int<>0
-    then raise exception 'RLS échoué : le serveur voit des données de gestion';end if;
-end $$;
+select public.test_assert(:direct_drinks::integer=0,'RLS catalogue');
+select public.test_assert(:direct_sales::integer=0,'RLS ventes');
+select public.test_assert(:direct_cash::integer=0,'RLS caisse');
 select count(*) as server_catalogue from public.mp_catalogue_serveur(:'maquis_id'::uuid) \gset
-do $$
-begin
-  if :server_catalogue::int<>1 then raise exception 'Catalogue serveur inaccessible';end if;
-end $$;
+select public.test_assert(:server_catalogue::integer=1,'Catalogue serveur');
 reset role;
 select stock as last_stock from public.mp_boissons where id=:'drink_id'::uuid \gset
 select count(*) as sale_count from public.mp_ventes where maquis_id=:'maquis_id'::uuid \gset
 select recettes_declarees as cash_total from public.mp_caisse where maquis_id=:'maquis_id'::uuid \gset
-do $$
-begin
-  if :last_stock::int<>23 then raise exception 'Stock incorrect';end if;
-  if :sale_count::int<>1 then raise exception 'Vente doublée';end if;
-  if :cash_total::int<>650 then raise exception 'Caisse incorrecte';end if;
-end $$;
+select public.test_assert(:last_stock::integer=23,'Stock final');
+select public.test_assert(:sale_count::integer=1,'Nombre ventes');
+select public.test_assert(:cash_total::integer=650,'Caisse finale');
