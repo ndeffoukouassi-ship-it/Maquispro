@@ -15,6 +15,7 @@ const conf={
   appId:import.meta.env.VITE_FIREBASE_APP_ID,
 };
 const configured=Object.values(conf).every(v=>typeof v==='string'&&v.length>3);
+const backendReady=import.meta.env.VITE_MAQUISPRO_BACKEND_READY==='true';
 const state={user:null,tenant:null,role:null,maquis:null,products:[],sales:[],expenses:[],cash:null,unsubs:[],functions:null,db:null,auth:null,stream:null,timer:null,pendingScanId:null,pendingBarcode:null};
 function status(message,error=false){
   $('#status').textContent=message;
@@ -38,6 +39,7 @@ function closeStreams(){
   stopCamera();render();
 }
 function call(name,data){
+  if(!backendReady)throw new Error("Le serveur Firebase sécurisé n’est pas encore activé. Aucun enregistrement de vente possible.");
   return httpsCallable(state.functions,name)(data).then(result=>result.data);
 }
 function render(){
@@ -188,8 +190,7 @@ function bind(){
     const maquisId=f.elements.tenant.value.trim();
     try{
       sessionStorage.setItem('maquisId',maquisId);
-      const cred=await signInWithEmailAndPassword(state.auth,f.elements.email.value.trim(),f.elements.password.value);
-      await enterMaquis(cred.user.uid,maquisId);
+      await signInWithEmailAndPassword(state.auth,f.elements.email.value.trim(),f.elements.password.value);
     }catch(error){status(errorMessage(error),true);}
   });
   $('#signup').addEventListener('click',async()=>{
@@ -267,13 +268,24 @@ async function start(){
     status("Configuration Firebase manquante. Ajouter VITE_FIREBASE_* dans Render pour activer cette version.",true);
     return;
   }
+  if(!backendReady){
+    const message="Firebase Web est configuré, mais les fonctions de vente ne sont pas encore déployées. N’enregistre aucune recette réelle sur ce pilote.";
+    $('#configWarning').hidden=false;
+    $('#configWarning').textContent=message;
+    status("Connexion Firebase Web préparée. Activation des opérations en attente.",true);
+    ['saleForm','addDrinkForm','stockForm','expenseForm','inventoryForm','teamForm','createMaquisForm','activateForm'].forEach(id=>{
+      const form=document.getElementById(id);
+      if(form)form.querySelectorAll('button[type=submit],button:not([type])').forEach(btn=>{btn.disabled=true;btn.title="Fonctions serveur non déployées";});
+    });
+    $('#startCamera').disabled=true;
+  }
   const app=initializeApp(conf);
   state.auth=getAuth(app);state.db=getFirestore(app);state.functions=getFunctions(app,'europe-west1');
   onAuthStateChanged(state.auth,async user=>{
     state.user=user;
     if(!user){
       closeStreams();$('#authPanel').hidden=false;$('#appPanel').hidden=true;$('#adminPanel').hidden=true;$('#logout').hidden=true;
-      status('Connexion nécessaire.');
+      status(backendReady?'Connexion nécessaire.':'Configuration Web en place ; serveur de ventes non activé.');
       return;
     }
     const token=await getIdTokenResult(user);
