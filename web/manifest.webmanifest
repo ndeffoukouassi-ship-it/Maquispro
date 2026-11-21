@@ -1,0 +1,27 @@
+{
+  "id": "/index.html",
+  "name": "MaquisPro — Gestion des boissons (démonstration)",
+  "short_name": "MaquisPro",
+  "description": "MaquisPro IGC : démonstration locale de ventes, stock, inventaires et caisse unique. Ne pas utiliser pour encaissements réels.",
+  "lang": "fr",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#d9f1ff",
+  "theme_color": "#064633",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./logo-maquispro.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./logo-maquispro.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
