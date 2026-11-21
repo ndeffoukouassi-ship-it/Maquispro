@@ -66,3 +66,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/maquispro_schema_draft.sql
       - name: Tester stock, caisse, scan et contrôle des accès
         run: psql -v ON_ERROR_STOP=1 -f tests/supabase-smoke-check.sql
+      - name: Installer verrou central IGC
+        run: psql -v ON_ERROR_STOP=1 -f supabase/maquispro_verrou_mise_en_service.sql
+      - name: Vérifier qu'une vente non autorisée reste impossible
+        run: psql -v ON_ERROR_STOP=1 -f tests/supabase-smoke-guard.sql
