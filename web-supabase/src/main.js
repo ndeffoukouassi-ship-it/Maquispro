@@ -309,13 +309,19 @@ async function enterAfterAuth(user){
   $('#adminPanel').hidden=!state.admin;
   if(state.admin)await loadAdminClients();
   const tenant=sessionStorage.getItem('mp_tenant')||$('#tenantId').value.trim();
-  if(tenant){
+  if(tenant && !uuidRE.test(tenant)){
+    // Un nom d’établissement ou le nom du projet Firebase n’est pas un UUID.
+    // Supprimer la valeur enregistrée pour éviter une erreur à chaque reconnexion.
+    sessionStorage.removeItem('mp_tenant');
+    $('#tenantId').value='';
+  }
+  if(tenant && uuidRE.test(tenant)){
     try{await enterTenant(tenant);}
     catch(e){status(errorText(e),true);$('#authPanel').hidden=false;}
   }else{
     $('#authPanel').hidden=state.admin;
     status(state.admin?'Administrateur IGC connecté. Consulte le parc clients ou inscris un maquis.'
-      :'Compte connecté. Saisis le code du maquis attribué par IGC.');
+      :'Ton compte est connecté. Le droit Administrateur IGC doit encore être attribué par IGC. Laisse le code du maquis vide pour cet accès.');
   }
 }
 async function sale(code){
@@ -389,7 +395,12 @@ function bind(){
     if(!backendReady)return status('La base MaquisPro dédiée n’est pas encore créée.',true);
     const f=event.currentTarget;
     const tenant=f.elements.tenant.value.trim();
-    if(tenant)sessionStorage.setItem('mp_tenant',tenant);
+    if(tenant && !uuidRE.test(tenant)){
+      // Aide à la saisie sans envoyer un code de maquis invalide à Supabase.
+      f.elements.tenant.value='';
+      sessionStorage.removeItem('mp_tenant');
+      status('Code du maquis effacé : pour l’administration IGC, laisse ce champ vide. Connecte-toi avec ton e-mail et ton mot de passe.');
+    } else if(tenant)sessionStorage.setItem('mp_tenant',tenant);
     else sessionStorage.removeItem('mp_tenant');
     const {data,error}=await client.auth.signInWithPassword({
       email:f.elements.email.value.trim(),password:f.elements.password.value
