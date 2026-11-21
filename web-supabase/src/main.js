@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { exportCatalogue } from './catalog-export.js';
 import {resumeParc,filtrerParc,TARIFS_IGC} from './admin-summary.mjs';
+import {emailRateLimit,authMessage,waitLabel,EMAIL_RETRY_MINUTES,EMAIL_LIMIT_MINUTES} from './auth-feedback.mjs';
 import './style.css';
 
 const $=s=>document.querySelector(s);
@@ -28,10 +29,85 @@ function status(message,bad=false){
   $('#status').classList.toggle('error',bad);
 }
 function errorText(e){
+  const message=authMessage(e);
+  if(message)return message;
   if(e?.message?.includes('JWT'))return 'Session expirée. Reconnecte-toi.';
   if(e?.message?.includes('permission')||e?.code==='42501')return 'Accès refusé à ce maquis.';
   if(e?.message?.includes('fetch')||e?.message?.includes('network'))return 'Réseau indisponible : aucune vente confirmée.';
   return (e?.message||String(e)||'Une erreur est survenue').slice(0,230);
+}
+
+const emailCooldownKey='maquispro-auth-emails-next-at-v1';
+let emailSending=false;
+let emailCooldownTimer=null;
+// Un seul délai côté appareil pour l'inscription, la confirmation et le mot de passe.
+function emailWaitMs(){
+  try{
+    const expiry=Number(localStorage.getItem(emailCooldownKey))||0;
+    return Math.max(0,expiry-Date.now());
+  }catch{return 0;}
+}
+function setEmailCooldown(minutes){
+  try{localStorage.setItem(emailCooldownKey,String(Date.now()+minutes*60000));}catch{}
+  refreshEmailControls();
+}
+function refreshEmailControls(){
+  const waiting=emailWaitMs();
+  const disabled=emailSending||waiting>0;
+  for(const id of ['signup','resendConfirm','forgotPassword']){
+    const button=$('#'+id);if(button)button.disabled=disabled;
+  }
+  const help=$('#emailHelp');
+  if(help)help.textContent=waiting>0
+    ?'Envoi d’e-mails en pause sur ce téléphone : '+waitLabel(waiting)+
+      ' environ. Cette pause évite les demandes répétées ; le quota réel dépend de Supabase. Tu peux toujours utiliser « Se connecter ».'
+    :emailSending
+      ?'Demande en cours. Un seul clic suffit.'
+      :'Pour éviter le blocage Supabase, demande un seul e-mail puis utilise le dernier lien reçu. Ne recrée pas ton compte.';
+  if(waiting>0&&!emailCooldownTimer){
+    emailCooldownTimer=setInterval(()=>{
+      if(emailWaitMs()===0){clearInterval(emailCooldownTimer);emailCooldownTimer=null;}
+      refreshEmailControls();
+    },30000);
+  }else if(waiting===0&&emailCooldownTimer){
+    clearInterval(emailCooldownTimer);emailCooldownTimer=null;
+  }
+}
+function canRequestEmail(){
+  if(!configured||!backendReady){status('Authentification Supabase indisponible.',true);return false;}
+  if(emailSending){status('Demande déjà en cours. Un seul clic suffit.',true);return false;}
+  const waiting=emailWaitMs();
+  if(waiting>0){
+    status('Nous évitons une nouvelle demande pendant encore '+waitLabel(waiting)+
+      '. Supabase peut conserver sa limite plus longtemps.',true);
+    return false;
+  }
+  return true;
+}
+async function emailAction(action,success){
+  if(!canRequestEmail())return;
+  const email=$('#email').value.trim();
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+    status('Écris ton adresse e-mail dans le champ « E-mail » avant de cliquer.',true);
+    return;
+  }
+  emailSending=true;refreshEmailControls();
+  try{
+    const {error}=await action(email);
+    if(error)throw error;
+    setEmailCooldown(EMAIL_RETRY_MINUTES);
+    status(success);
+  }catch(e){
+    if(emailRateLimit(e))setEmailCooldown(EMAIL_LIMIT_MINUTES);
+    status(errorText(e),true);
+  }finally{emailSending=false;refreshEmailControls();}
+}
+function showAuthLinkError(){
+  const params=new URLSearchParams(window.location.hash.replace(/^#/,''));
+  if(!params.get('error_code'))return;
+  status(authMessage({code:params.get('error_code'),message:params.get('error_description')})||
+    'Lien de confirmation invalide. Utilise le dernier lien valide reçu.',true);
+  window.history.replaceState(null,'',window.location.pathname+window.location.search);
 }
 function assertOnline(){
   if(!client||!configured)throw Error('Projet Supabase non configuré.');
@@ -323,65 +399,36 @@ function bind(){
     catch(e){status(errorText(e),true);}
   });
   $('#signup').addEventListener('click',async()=>{
-    if(!configured||!backendReady)return status('Création de compte indisponible jusqu’à l’activation du pilote.',true);
+    if(!canRequestEmail())return;
     const f=$('#loginForm');
+    const email=f.elements.email.value.trim();
+    const password=f.elements.password.value;
+    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))
+      return status('Saisis une adresse e-mail valide.',true);
+    if(password.length<8)return status('Saisis un mot de passe de 8 caractères minimum.',true);
+    emailSending=true;refreshEmailControls();
     try{
       const {data,error}=await client.auth.signUp({
-        email:f.elements.email.value.trim(),
-        password:f.elements.password.value,
-        options:{emailRedirectTo:window.location.origin}
+        email,password,options:{emailRedirectTo:window.location.origin}
       });
       if(error)throw error;
-      status(data.session?'Compte créé : demande à IGC ton accès au maquis.':'Vérifie ton e-mail pour confirmer le compte, puis contacte IGC.');
-    }catch(e){status(errorText(e),true);}
+      setEmailCooldown(EMAIL_RETRY_MINUTES);
+      status(data.session?'Compte créé. Demande ensuite à IGC les droits d’accès.':
+        'La demande d’inscription a été enregistrée. Vérifie le dernier e-mail de confirmation (y compris les spams).');
+    }catch(e){
+      if(emailRateLimit(e))setEmailCooldown(EMAIL_LIMIT_MINUTES);
+      status(errorText(e),true);
+    }finally{emailSending=false;refreshEmailControls();}
   });
   // Confirmation d'adresse e-mail : pas de nouveau compte créé.
-  $('#resendConfirm').addEventListener('click',async()=>{
-    if(!configured||!backendReady)return status('Service Supabase indisponible.',true);
-    const email=$('#email').value.trim();
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-      status('Renseigne seulement ton adresse e-mail, puis clique sur Renvoyer.',true);
-      return;
-    }
-    const btn=$('#resendConfirm');
-    btn.disabled=true;
-    try{
-      const {error}=await client.auth.resend({
-        type:'signup',
-        email,
-        options:{emailRedirectTo:window.location.origin}
-      });
-      if(error)throw error;
-      status('Un nouveau courriel de confirmation a été demandé. Consulte ta boîte de réception et les spams.');
-    }catch(e){
-      const text=(e?.message||'').toLowerCase();
-      status(text.includes('rate limit')||text.includes('too many')||text.includes('email rate')
-        ?'Limite d’e-mails Supabase atteinte. Réessaie après sa réinitialisation, sans multiplier les demandes.'
-        :errorText(e),true);
-    }finally{btn.disabled=false;}
-  });
-  $('#forgotPassword').addEventListener('click',async()=>{
-    if(!configured||!backendReady)return status('Authentification indisponible pour le moment.',true);
-    const email=$('#email').value.trim();
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-      status('Écris ton adresse e-mail dans le formulaire, puis réessaie.',true);
-      return;
-    }
-    const button=$('#forgotPassword');
-    button.disabled=true;
-    try{
-      const {error}=await client.auth.resetPasswordForEmail(email,{
-        redirectTo:window.location.origin+'/'
-      });
-      if(error)throw error;
-      status('Si ce compte existe, un courriel de réinitialisation sera envoyé. Vérifie ta boîte e-mail et les spams.');
-    }catch(e){
-      const message=(e?.message||'').toLowerCase();
-      status(message.includes('rate limit')||message.includes('too many')
-        ?'Limite des courriels Supabase atteinte. Attends sa réinitialisation, sans multiplier les demandes.'
-        :errorText(e),true);
-    }finally{button.disabled=false;}
-  });
+  $('#resendConfirm').addEventListener('click',()=>emailAction(
+    email=>client.auth.resend({type:'signup',email,options:{emailRedirectTo:window.location.origin}}),
+    'Confirmation demandée. Si Supabase autorise l’envoi, vérifie le dernier message dans ta boîte et tes spams.'
+  ));
+  $('#forgotPassword').addEventListener('click',()=>emailAction(
+    email=>client.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/'}),
+    'Réinitialisation demandée. Si Supabase autorise l’envoi, vérifie ta boîte e-mail et les spams.'
+  ));
   $('#changePassword').addEventListener('click',()=>{
     if(!client||!state.user)return status('Connecte-toi d’abord à MaquisPro.',true);
     showPasswordChange();
@@ -496,6 +543,7 @@ function bind(){
 }
 async function init(){
   bind();
+  refreshEmailControls();
   if(!configured||!backendReady){
     $('#configWarning').hidden=false;
     $('#configWarning').textContent=(!configured
@@ -537,4 +585,4 @@ async function init(){
     }else status('Projet Supabase connecté. Crée ton compte IGC ou connecte-toi.');
   }catch(e){status(errorText(e),true);}
 }
-void init();
+void init().then(showAuthLinkError);
