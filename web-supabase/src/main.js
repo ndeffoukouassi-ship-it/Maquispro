@@ -87,7 +87,7 @@ function canRequestEmail(){
 async function emailAction(action,success){
   if(!canRequestEmail())return;
   const email=$('#email').value.trim();
-  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
     status('Écris ton adresse e-mail dans le champ « E-mail » avant de cliquer.',true);
     return;
   }
@@ -403,7 +403,7 @@ function bind(){
     const f=$('#loginForm');
     const email=f.elements.email.value.trim();
     const password=f.elements.password.value;
-    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return status('Saisis une adresse e-mail valide.',true);
     if(password.length<8)return status('Saisis un mot de passe de 8 caractères minimum.',true);
     emailSending=true;refreshEmailControls();
