@@ -7,7 +7,7 @@
 <script type="module" src="/src/main.js"></script></head><body>
 <header class="top">
   <div class="brand"><img src="/logo.svg" alt="Logo MaquisPro"><span>Maquis<b>Pro</b><small>IGC — Gestion des boissons</small></span></div>
-  <div class="topright"><span class="pilot">PILOTE SUPABASE</span><button id="logout" class="minor" hidden>Se déconnecter</button></div>
+  <div class="topright"><span class="pilot">PILOTE SUPABASE</span><button id="changePassword" class="minor" type="button" hidden>Changer mon mot de passe</button><button id="logout" class="minor" hidden>Se déconnecter</button></div>
 </header>
 <main>
 <div class="notice" id="configWarning" hidden>La configuration Supabase du projet n'est pas encore ajoutée sur Render. Ce pilote n'est pas activé.</div>
@@ -21,9 +21,18 @@
     <label>E-mail<input id="email" name="email" type="email" autocomplete="username" required placeholder="prenom@exemple.com"></label>
     <label>Mot de passe<input id="password" name="password" type="password" autocomplete="current-password" required minlength="8"></label>
     <div class="row"><button class="gold3d" type="submit" id="login">Se connecter</button><button class="secondary3d" id="signup" type="button">Créer mon compte</button></div>
-    <div class="row"><button class="minor" type="button" id="resendConfirm">Renvoyer le courriel de confirmation</button></div>
+    <div class="row"><button class="minor" type="button" id="resendConfirm">Renvoyer le courriel de confirmation</button><button class="minor" type="button" id="forgotPassword">Mot de passe oublié ou à changer</button></div>
   </form>
   <p class="hint">L'inscription ne donne aucun accès à un maquis tant qu'IGC ou son propriétaire ne vous y a pas autorisé.</p>
+</section>
+<section id="passwordRecoveryPanel" class="panel" hidden>
+  <h1>Créer un nouveau mot de passe</h1>
+  <p>Choisis un mot de passe sécurisé pour ton compte MaquisPro. Ne le transmets à personne.</p>
+  <form id="passwordRecoveryForm" class="form">
+    <label>Nouveau mot de passe<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+    <label>Confirmer le nouveau mot de passe<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+    <button class="gold3d" type="submit">Enregistrer le nouveau mot de passe</button>
+  </form>
 </section>
 <section id="appPanel" hidden>
   <div class="hero">
