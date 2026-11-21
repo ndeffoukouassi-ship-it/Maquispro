@@ -30,3 +30,41 @@ h1,h2,h3{line-height:1.2}h1{font:700 clamp(24px,4vw,38px) Georgia,serif;margin:6
 #appPanel[data-role="serveur"] .manager-price{display:none}
 #appPanel[data-role="serveur"] #catalogueExportPanel{display:none}
 #appPanel[data-role="serveur"] .actions button[hidden]{display:none}
+
+
+/* Administration IGC : gestion visuelle des contrats, aucun paiement automatique. */
+.admin-pricing{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.admin-pricing span{display:flex;flex-direction:column;gap:7px;border:2px solid #dcc475;background:linear-gradient(160deg,#faffff,#e2f3ed);border-radius:16px;padding:15px;color:#285849;font-weight:700;box-shadow:0 4px 9px #063c2826}
+.admin-pricing b{font-size:20px;color:#064831}
+.admin-overview{background:#effaff;border:1px solid #d3bd6e;border-radius:20px;margin:22px 0;padding:18px}
+.admin-overview-title{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.admin-overview-title h3{margin:0;color:#044933}
+.admin-overview-title button{font-size:13px;padding:10px 13px}
+.admin-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:19px 0}
+.admin-kpis div{background:#fff;border:1px solid #d5b966;border-radius:14px;padding:14px 10px;box-shadow:0 5px 10px #03513d19}
+.admin-kpis small{font-size:12px;display:block;min-height:34px;color:#4d6b5f}
+.admin-kpis strong{display:block;font-size:26px;color:#034731;margin-top:2px;font-variant-numeric:tabular-nums}
+.admin-filters{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px}
+.admin-filters label{font-weight:800;color:#315b49}
+.admin-filters input,.admin-filters select{margin-top:7px}
+.admin-table{min-width:720px}
+.admin-table td{vertical-align:middle}
+.admin-table td:first-child{min-width:170px}
+.admin-table td strong,.admin-table td small,.admin-table td code{display:block}
+.admin-table td small{color:#567067}
+.admin-table td code{color:#47746d;font-size:10px;overflow-wrap:anywhere}
+.admin-select{font-size:12px;padding:8px 12px;box-shadow:0 3px 0 #bb9b3a,0 5px 6px #002b1b2e;white-space:nowrap}
+.admin-status{display:inline-block;padding:5px 9px;border-radius:20px;font-weight:800;font-size:12px;color:#0c4734;background:#e6f4eb}
+.admin-status-bientot,.admin-status-en_attente{color:#8b5614;background:#fff2bf}
+.admin-status-expire,.admin-status-suspendu{color:#a12829;background:#ffe7e7}
+.admin-status-inconnu{color:#6a526f;background:#f2e9fa}
+#adminCountNote{margin-top:13px}
+@media(max-width:700px){
+  .admin-pricing{grid-template-columns:1fr}
+  .admin-pricing span{flex-direction:row;justify-content:space-between;gap:10px}
+  .admin-pricing b{font-size:16px;white-space:nowrap}
+  .admin-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-filters{grid-template-columns:1fr}
+  .admin-overview{padding:12px}
+  .admin-overview-title h3{font-size:16px}
+}
