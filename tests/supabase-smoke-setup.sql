@@ -16,3 +16,11 @@ insert into auth.users(id,email) values
 ('22222222-2222-4222-8222-222222222222','owner@igc.test'),
 ('33333333-3333-4333-8333-333333333333','serveur@igc.test'),
 ('44444444-4444-4444-8444-444444444444','outsider@igc.test');
+
+create or replace function public.test_assert(ok boolean,msg text)
+returns text language plpgsql as $$
+begin
+ if ok is distinct from true then raise exception 'SMOKE TEST FAILED: %',msg; end if;
+ return 'OK';
+end $$;
+grant execute on function public.test_assert(boolean,text) to authenticated;
