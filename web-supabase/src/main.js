@@ -14,13 +14,14 @@ const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||'';
 const configured=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)&&key.length>20;
 const backendReady=import.meta.env.VITE_MAQUISPRO_BACKEND_READY==='true';
 const salesReady=import.meta.env.VITE_MAQUISPRO_SALES_ENABLED==='true';
+const recoveryLink=typeof window!=='undefined' && new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type')==='recovery';
 const client=configured?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 
 const state={
   user:null,role:null,maquis:null,tenant:null,admin:false,products:[],sales:[],
   stats:{},refreshing:false,generation:0,channel:null,refreshTimer:null,
   adminClients:[],adminLoading:false,adminTruncated:false,
-  stream:null,scanTimer:null,scanning:false,pendingId:null,pendingCode:null
+  stream:null,scanTimer:null,scanning:false,pendingId:null,pendingCode:null,recoveryMode:false
 };
 function status(message,bad=false){
   $('#status').textContent=message;
@@ -52,6 +53,26 @@ function resetUI(){
   $('#appPanel').hidden=true;
   $('#appPanel').dataset.role='';
   $('#connection').textContent='Non connecté à un maquis';
+}
+function showPasswordChange(){
+  // N'afficher le formulaire de modification qu'avec une session authentifiée.
+  state.recoveryMode=true;
+  $('#authPanel').hidden=true;
+  $('#appPanel').hidden=true;
+  $('#adminPanel').hidden=true;
+  $('#passwordRecoveryPanel').hidden=false;
+  $('#changePassword').hidden=true;
+  $('#logout').hidden=true;
+  status('Choisis ton nouveau mot de passe MaquisPro (12 caractères minimum).');
+}
+function showAuthAfterRecovery(){
+  state.recoveryMode=false;
+  $('#passwordRecoveryPanel').hidden=true;
+  $('#authPanel').hidden=false;
+  $('#appPanel').hidden=true;
+  $('#adminPanel').hidden=true;
+  $('#changePassword').hidden=true;
+  $('#logout').hidden=true;
 }
 function nameRole(role){
   return role==='proprietaire'?'Propriétaire':role==='gerant'?'Gérant':'Serveur';
@@ -203,6 +224,9 @@ async function enterTenant(maquisId){
 async function enterAfterAuth(user){
   resetUI();state.user=user;
   $('#logout').hidden=false;
+  $('#changePassword').hidden=false;
+  $('#passwordRecoveryPanel').hidden=true;
+  state.recoveryMode=false;
   const admin=await rpc('mp_est_admin_igc');
   state.admin=admin===true;
   state.adminClients=[];
@@ -336,8 +360,56 @@ function bind(){
         :errorText(e),true);
     }finally{btn.disabled=false;}
   });
+  $('#forgotPassword').addEventListener('click',async()=>{
+    if(!configured||!backendReady)return status('Authentification indisponible pour le moment.',true);
+    const email=$('#email').value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      status('Écris ton adresse e-mail dans le formulaire, puis réessaie.',true);
+      return;
+    }
+    const button=$('#forgotPassword');
+    button.disabled=true;
+    try{
+      const {error}=await client.auth.resetPasswordForEmail(email,{
+        redirectTo:window.location.origin+'/'
+      });
+      if(error)throw error;
+      status('Si ce compte existe, un courriel de réinitialisation sera envoyé. Vérifie ta boîte e-mail et les spams.');
+    }catch(e){
+      const message=(e?.message||'').toLowerCase();
+      status(message.includes('rate limit')||message.includes('too many')
+        ?'Limite des courriels Supabase atteinte. Attends sa réinitialisation, sans multiplier les demandes.'
+        :errorText(e),true);
+    }finally{button.disabled=false;}
+  });
+  $('#changePassword').addEventListener('click',()=>{
+    if(!client||!state.user)return status('Connecte-toi d’abord à MaquisPro.',true);
+    showPasswordChange();
+  });
+  $('#passwordRecoveryForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!client||!state.recoveryMode)return status('Ouvre le lien de récupération reçu par e-mail.',true);
+    const form=e.currentTarget;
+    const next=form.elements.newPassword.value;
+    const confirm=form.elements.confirmPassword.value;
+    if(next.length<12)return status('Choisis au moins 12 caractères.',true);
+    if(next!==confirm)return status('Les deux mots de passe ne sont pas identiques.',true);
+    const button=form.querySelector('button[type=submit]');
+    button.disabled=true;
+    try{
+      const {data:{session},error:sessionError}=await client.auth.getSession();
+      if(sessionError||!session)throw new Error('Le lien a expiré. Demande un nouveau courriel de réinitialisation.');
+      const {error}=await client.auth.updateUser({password:next});
+      if(error)throw error;
+      form.reset();
+      await client.auth.signOut();
+      showAuthAfterRecovery();
+      status('Ton mot de passe MaquisPro a été modifié. Connecte-toi avec ton nouveau mot de passe.');
+    }catch(error){status(errorText(error),true);}
+    finally{button.disabled=false;}
+  });
   $('#logout').onclick=async()=>{if(client)await client.auth.signOut();resetUI();
-    state.user=null;state.admin=false;state.adminClients=[];$('#adminPanel').hidden=true;$('#authPanel').hidden=false;$('#logout').hidden=true;status('Déconnecté.');};
+    state.user=null;state.admin=false;state.adminClients=[];showAuthAfterRecovery();status('Déconnecté.');};
   $$('.actions button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
   $('#saleForm').onsubmit=async e=>{
     e.preventDefault();
@@ -444,22 +516,25 @@ async function init(){
       $('#saleForm').querySelectorAll('button').forEach(b=>b.disabled=true);
       $('#startCamera').disabled=true;
     }
+    // S'abonner avant l'initialisation de session pour capter PASSWORD_RECOVERY.
+    client.auth.onAuthStateChange((event,session)=>{
+      if(event==='PASSWORD_RECOVERY' && session){
+        showPasswordChange();
+        return;
+      }
+      if(event==='SIGNED_OUT'){
+        resetUI();state.user=null;state.admin=false;showAuthAfterRecovery();
+      }
+    });
     const {data:{session},error}=await client.auth.getSession();
     if(error)throw error;
-    if(session){
+    if(session && (state.recoveryMode||recoveryLink)){
+      showPasswordChange();
+    }else if(session){
       const {data:{user},error:userError}=await client.auth.getUser();
       if(userError)throw userError;
       if(user)await enterAfterAuth(user);
-    }
-    else status('Projet Supabase connecté. Crée ton compte IGC ou connecte-toi.');
-    client.auth.onAuthStateChange((event,session)=>{
-      // Les connexions explicites sont gérées par le formulaire ; ici déconnexion externe.
-      if(event==='SIGNED_OUT'){
-        resetUI();state.user=null;state.admin=false;
-        $('#appPanel').hidden=true;$('#adminPanel').hidden=true;$('#authPanel').hidden=false;
-        $('#logout').hidden=true;
-      }
-    });
+    }else status('Projet Supabase connecté. Crée ton compte IGC ou connecte-toi.');
   }catch(e){status(errorText(e),true);}
 }
 void init();
