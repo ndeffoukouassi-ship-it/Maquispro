@@ -9,6 +9,7 @@ on:
       - 'tests/supabase-*.sql'
       - 'tests/catalog-export-supabase.test.mjs'
       - 'tests/igc-admin-dashboard.test.mjs'
+      - 'tests/auth-feedback.test.mjs'
       - '.github/workflows/supabase-pilot-ci.yml'
   workflow_dispatch:
 
@@ -27,6 +28,7 @@ jobs:
           node --check web-supabase/src/main.js
           node --check web-supabase/src/catalog-export.js
           node --check web-supabase/src/admin-summary.mjs
+          node --check web-supabase/src/auth-feedback.mjs
       - name: Installer les dépendances
         run: npm install --no-audit --no-fund
         working-directory: web-supabase
@@ -34,7 +36,7 @@ jobs:
         run: npm run build
         working-directory: web-supabase
       - name: Vérifier exports Excel Word et suivi des abonnements IGC
-        run: node --test tests/catalog-export-supabase.test.mjs tests/igc-admin-dashboard.test.mjs
+        run: node --test tests/catalog-export-supabase.test.mjs tests/igc-admin-dashboard.test.mjs tests/auth-feedback.test.mjs
 
   postgres:
     runs-on: ubuntu-latest
