@@ -68,3 +68,6 @@ h1,h2,h3{line-height:1.2}h1{font:700 clamp(24px,4vw,38px) Georgia,serif;margin:6
   .admin-overview{padding:12px}
   .admin-overview-title h3{font-size:16px}
 }
+
+/* Information claire quand l'envoi de courriel est suspendu sur ce navigateur. */
+.auth-email-help{margin-top:12px;padding:12px 14px;background:#fff4d5;border:1px solid #d5b052;border-radius:12px;color:#664a18;font-weight:700;font-size:13px;line-height:1.5}
