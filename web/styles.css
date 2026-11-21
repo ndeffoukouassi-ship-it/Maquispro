@@ -167,3 +167,12 @@ footer{padding:26px 14px 7px;text-align:center;color:#507568;font-size:12px}.bot
 .install-button[hidden]{display:none}
 .install-button:active{transform:translateY(2px);box-shadow:0 1px 0 #94722a}
 @media(max-width:530px){.header-actions{gap:6px}.install-button{padding:9px 7px;font-size:12px}}
+
+/* Export du catalogue : zone commune au stock, harmonisée vert et or. */
+.catalogue-export{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0 24px;padding:19px 18px;border-radius:20px;border:2px solid #d8b759;background:linear-gradient(125deg,#ecf9ff,#e4f7ed);box-shadow:0 5px 12px #044e3b27}
+.catalogue-export-intro{flex:1 1 250px}
+.catalogue-export-intro h3{margin:0 0 6px;color:#034a32;font-size:19px}
+.catalogue-export-intro p{margin:0;color:#3f6258;font-size:13px;line-height:1.5}
+.catalogue-export-buttons{display:flex;gap:11px;flex-wrap:wrap}
+.catalogue-export-buttons .button-3d{font-size:13px;white-space:nowrap}
+@media(max-width:530px){.catalogue-export-buttons{display:grid;grid-template-columns:1fr 1fr;width:100%}.catalogue-export-buttons .button-3d{white-space:normal;padding:12px 5px;font-size:12px}}
