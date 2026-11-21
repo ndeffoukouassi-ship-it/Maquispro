@@ -109,3 +109,54 @@ footer{padding:26px 14px 7px;text-align:center;color:#507568;font-size:12px}.bot
   .input-group{flex-direction:column}.report-numbers{gap:9px}.report-numbers strong{font-size:17px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+
+/* Identité MaquisPro validée : logo dans un bandeau vert/or uniforme.
+   Cette feuille remplace l'ancien bandeau contenant une bouteille de champagne. */
+.hero{
+  min-height:248px;
+  display:grid;
+  grid-template-columns:minmax(180px,31%) 2px 1fr;
+  align-items:center;
+  gap:17px;
+  padding:17px 23px;
+  background:linear-gradient(123deg,#074b35 0%,#087c50 46%,#023d2d 100%);
+  border:2px solid #e8c35f;
+  box-shadow:inset 0 3px 3px #fff7,inset 0 -5px 12px #001d1699,0 8px 0 #aa842c,0 13px 22px #003c2c57;
+}
+.hero:before{width:520px;height:140px;bottom:-130px;left:-22px;border-color:#efcb67;opacity:.72}
+.hero:after{width:520px;height:160px;top:-150px;right:-180px;border-color:#f4df98;opacity:.5}
+.hero-logo-box{position:relative;z-index:2;min-width:0;display:flex;justify-content:center;align-items:center}
+.maquis-logo{
+  width:min(100%,215px);
+  height:auto;
+  max-height:204px;
+  object-fit:contain;
+  filter:drop-shadow(0 6px 8px #001c1670);
+  border-radius:20px;
+}
+.hero-divider{height:75%;border-radius:10px;background:linear-gradient(180deg,#f4d97f,#a57a23,#ffe2a1);box-shadow:0 0 8px #ddbc5c8c;position:relative;z-index:2}
+.hero-text{position:relative;z-index:2;margin:0;padding:5px 8px 5px 7px;color:#f3f8f3}
+.hero h1{color:#ffffff;font-size:clamp(24px,3.25vw,39px);margin:16px 0 10px;text-shadow:0 2px 2px #002d22}
+.hero p{color:#e8f3e5;font-size:15px;font-weight:600;line-height:1.4}
+.hero .activation{background:#fff5d5;color:#305540;border:1px solid #ebcb68}
+.hero .activation strong{color:#8c6619}
+.hero small{color:#e2ead8}
+.inventory-shortcuts{display:grid;grid-template-columns:1.1fr repeat(3,minmax(0,1fr));align-items:center;gap:12px;margin:0 0 28px;padding:14px 17px;background:linear-gradient(130deg,#045e40,#005136,#02392b);border:2px solid #dcb44c;border-radius:22px;box-shadow:inset 0 2px 2px #ffffff5c,0 6px 0 #987322,0 10px 16px #004b3950}
+.inventory-title{font-weight:850;color:#fff2c4;font-size:17px;letter-spacing:.02em}
+.inventory-shortcuts .gold-button{font-size:14px;padding:12px 8px}
+@media(max-width:530px){
+  .hero{grid-template-columns:minmax(96px,38%) 2px minmax(0,1fr);gap:9px;padding:13px 10px;min-height:218px}
+  .hero-logo-box{width:100%;max-width:140px}
+  .maquis-logo{width:100%;max-height:145px;border-radius:13px}
+  .hero-divider{height:84%}
+  .hero-text{padding:6px 2px 6px 1px;margin:0}
+  .hero .gold-ribbon{font-size:11px;padding:6px 7px}
+  .hero h1{font-size:21px;margin:11px 0 6px}
+  .hero p{font-size:12px;margin:0 0 9px}
+  .hero .activation{font-size:9px;padding:6px}
+  .hero small{font-size:9px}
+  .inventory-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 10px}
+  .inventory-title{grid-column:1/-1;text-align:center;font-size:15px}
+  .inventory-shortcuts .gold-button{font-size:12px;padding:9px 5px}
+}
