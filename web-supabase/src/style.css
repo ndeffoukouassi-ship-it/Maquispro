@@ -406,3 +406,77 @@ footer{
   .hero{background:linear-gradient(150deg,#064474,#1676b4,#042f61)}
   .admin-overview{padding:12px}
 }
+
+
+/* Fond MaquisPro : terrasse conviviale en soirée, bleu-or.
+   Photo : Jan Macháček / Unsplash License.
+   Illustration locale de secours : /maquis-ambiance.svg.
+   Aucun nouveau traitement de données ; ne modifie ni ventes ni abonnements. */
+html{background:#10446e}
+body{
+  position:relative;
+  min-height:100vh;
+  isolation:isolate;
+  background:transparent;
+}
+body::before{
+  content:"";
+  position:fixed;
+  z-index:0;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(170deg,rgba(5,44,87,.22),rgba(1,34,67,.38) 75%),
+    url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1600&q=78"),
+    url("/maquis-ambiance.svg");
+  background-position:center,center,center;
+  background-size:cover,cover,cover;
+  background-repeat:no-repeat;
+}
+body > header,body > main,body > footer{
+  position:relative;
+  z-index:1;
+}
+.panel,.page{
+  background:linear-gradient(156deg,rgba(250,254,255,.95),rgba(221,240,252,.91));
+  box-shadow:0 9px 28px #001d4062,0 3px 0 #cfb26899;
+}
+.notice{box-shadow:0 5px 17px #061f4140}
+.hero{
+  background-image:
+    linear-gradient(120deg,rgba(3,40,77,.88),rgba(2,53,92,.57)),
+    url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1400&q=76"),
+    url("/maquis-ambiance.svg");
+  background-position:center,center 48%,center;
+  background-size:cover,cover,cover;
+}
+.metrics article,.admin-kpis div{
+  background:linear-gradient(155deg,rgba(255,255,255,.96),rgba(219,240,255,.91));
+}
+.admin-overview,.card,.admin-pricing span{
+  background:linear-gradient(165deg,rgba(255,255,255,.96),rgba(225,243,254,.94));
+}
+@media(max-width:700px){
+  body::before{
+    background-image:
+      linear-gradient(160deg,rgba(5,38,77,.14),rgba(1,32,67,.34) 85%),
+      url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1050&q=72"),
+      url("/maquis-ambiance.svg");
+    background-position:center,center,center;
+  }
+  .panel,.page{background:rgba(241,250,255,.94)}
+  .hero{
+    background-image:
+      linear-gradient(135deg,rgba(2,45,81,.91),rgba(2,45,81,.63)),
+      url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1050&q=72"),
+      url("/maquis-ambiance.svg");
+    background-size:cover,cover,cover;
+    background-position:center;
+  }
+}
+@media(prefers-reduced-data:reduce){
+  body::before{
+    background-image:linear-gradient(rgba(3,38,69,.25),rgba(3,38,69,.55)),url("/maquis-ambiance.svg");
+    background-size:cover;
+  }
+}
