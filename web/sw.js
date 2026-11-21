@@ -1,5 +1,5 @@
-const VERSION = "maquispro-demo-v2-20261121";
-const FILES = ["./", "./index.html", "./styles.css", "./app.js", "./logo-maquispro.svg", "./manifest.webmanifest"];
+const VERSION = "maquispro-demo-v3-export-20261121";
+const FILES = ["./", "./index.html", "./styles.css", "./app.js", "./logo-maquispro.svg", "./manifest.webmanifest", "./catalog-export.mjs"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
