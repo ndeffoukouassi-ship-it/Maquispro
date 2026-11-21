@@ -1,0 +1,76 @@
+name: MaquisPro Supabase — Validation du pilote
+
+on:
+  push:
+    branches: [supabase-multi-maquis, igc-admin-dashboard]
+    paths:
+      - 'web-supabase/**'
+      - 'supabase/**'
+      - 'tests/supabase-*.sql'
+      - 'tests/catalog-export-supabase.test.mjs'
+      - 'tests/igc-admin-dashboard.test.mjs'
+      - 'tests/auth-feedback.test.mjs'
+      - '.github/workflows/supabase-pilot-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifier les scripts JavaScript
+        run: |
+          node --check web-supabase/src/main.js
+          node --check web-supabase/src/catalog-export.js
+          node --check web-supabase/src/admin-summary.mjs
+          node --check web-supabase/src/auth-feedback.mjs
+      - name: Installer les dépendances
+        run: npm install --no-audit --no-fund
+        working-directory: web-supabase
+      - name: Compiler le pilote web MaquisPro
+        run: npm run build
+        working-directory: web-supabase
+      - name: Vérifier exports Excel Word et suivi des abonnements IGC
+        run: node --test tests/catalog-export-supabase.test.mjs tests/igc-admin-dashboard.test.mjs tests/auth-feedback.test.mjs
+
+  postgres:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: maquispro_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d maquispro_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: maquispro_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Préparer les rôles Supabase simulés
+        run: psql -v ON_ERROR_STOP=1 -f tests/supabase-smoke-setup.sql
+      - name: Vérifier la syntaxe et les politiques SQL
+        run: psql -v ON_ERROR_STOP=1 -f supabase/maquispro_schema_draft.sql
+      - name: Tester stock, caisse, scan et contrôle des accès
+        run: psql -v ON_ERROR_STOP=1 -f tests/supabase-smoke-check.sql
+      - name: Installer verrou central IGC
+        run: psql -v ON_ERROR_STOP=1 -f supabase/maquispro_verrou_mise_en_service.sql
+      - name: Vérifier qu'une vente non autorisée reste impossible
+        run: psql -v ON_ERROR_STOP=1 -f tests/supabase-smoke-guard.sql
