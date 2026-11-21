@@ -24,3 +24,9 @@ h1,h2,h3{line-height:1.2}h1{font:700 clamp(24px,4vw,38px) Georgia,serif;margin:6
 .catalogue-export-buttons{display:flex;flex-wrap:wrap;gap:12px}
 .catalogue-export-buttons button{font-size:13px}
 @media(max-width:580px){.catalogue-export-buttons{display:grid;grid-template-columns:1fr 1fr;width:100%}.catalogue-export-buttons button{font-size:12px;padding:11px 6px}}
+
+/* Les prix d'achat ne sont jamais présentés dans l'espace serveur.
+   La base SQL protège aussi les colonnes via les RPC filtrés. */
+#appPanel[data-role="serveur"] .manager-price{display:none}
+#appPanel[data-role="serveur"] #catalogueExportPanel{display:none}
+#appPanel[data-role="serveur"] .actions button[hidden]{display:none}
