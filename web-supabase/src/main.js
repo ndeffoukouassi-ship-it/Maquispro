@@ -12,6 +12,7 @@ const url=import.meta.env.VITE_SUPABASE_URL||'';
 const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||'';
 const configured=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)&&key.length>20;
 const backendReady=import.meta.env.VITE_MAQUISPRO_BACKEND_READY==='true';
+const salesReady=import.meta.env.VITE_MAQUISPRO_SALES_ENABLED==='true';
 const client=configured?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 
 const state={
@@ -164,6 +165,7 @@ async function enterAfterAuth(user){
 }
 async function sale(code){
   assertOnline();
+  if(!salesReady)throw Error('Ventes désactivées pendant la préparation du maquis pilote.');
   if(!state.tenant)throw Error('Maquis non sélectionné.');
   if(state.maquis?.statut!=='actif')throw Error('Licence inactive.');
   if(!/^[0-9]{8,14}$/.test(code))throw Error('Le code-barres doit contenir 8 à 14 chiffres.');
@@ -192,6 +194,7 @@ async function stopCamera(){
 }
 async function startCamera(){
   assertOnline();
+  if(!salesReady)throw Error('Scanner désactivé tant que les ventes ne sont pas validées.');
   if(!('BarcodeDetector' in window)||!navigator.mediaDevices?.getUserMedia)
     throw Error('Caméra de scan non prise en charge. Utilise la saisie de code-barres.');
   await stopCamera();
@@ -338,10 +341,19 @@ async function init(){
     return;
   }
   try{
-    const {data:{user},error}=await client.auth.getUser();
+    if(!salesReady){
+      $('#backendNotice').textContent='Comptes et catalogue disponibles. Caisse et ventes bloquées par IGC pendant les contrôles.';
+      $('#saleForm').querySelectorAll('button').forEach(b=>b.disabled=true);
+      $('#startCamera').disabled=true;
+    }
+    const {data:{session},error}=await client.auth.getSession();
     if(error)throw error;
-    if(user)await enterAfterAuth(user);
-    else status('Connecte-toi avec ton compte Supabase MaquisPro.');
+    if(session){
+      const {data:{user},error:userError}=await client.auth.getUser();
+      if(userError)throw userError;
+      if(user)await enterAfterAuth(user);
+    }
+    else status('Projet Supabase connecté. Crée ton compte IGC ou connecte-toi.');
     client.auth.onAuthStateChange((event,session)=>{
       // Les connexions explicites sont gérées par le formulaire ; ici déconnexion externe.
       if(event==='SIGNED_OUT'){
