@@ -182,3 +182,34 @@ $("#resetDemo").onclick=()=>{
  stopCamera();state=seed();store();render();toast("Démonstration réinitialisée.");
 };
 render();
+
+
+// MaquisPro : installation PWA de démonstration.
+let installPrompt = null;
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  installPrompt = event;
+  const button = document.querySelector("#installBtn");
+  if (button) button.hidden = false;
+});
+document.querySelector("#installBtn")?.addEventListener("click", async () => {
+  if (!installPrompt) {
+    toast("Sur Android : Chrome ⋮ → Ajouter à l'écran d'accueil.", false);
+    return;
+  }
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  document.querySelector("#installBtn").hidden = true;
+});
+window.addEventListener("appinstalled", () => {
+  document.querySelector("#installBtn").hidden = true;
+  toast("MaquisPro installé en mode démonstration.");
+});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      // L'application reste accessible en ligne si le cache n'est pas pris en charge.
+    });
+  });
+}
