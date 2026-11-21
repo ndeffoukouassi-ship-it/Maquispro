@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'maquis_profile.dart';
 
 const _vert = Color(0xFF08623F);
 const _bleu = Color(0xFFE4F3FF);
 const _or = Color(0xFFD4AF37);
 
-/// Vraie image photoréaliste de bouteille de champagne (sans marque),
-/// embarquée dans l'APK pour fonctionner sans connexion Internet.
-class ChampagneBackground extends StatelessWidget {
-  const ChampagneBackground({
+/// Bandeau approuvé par IGC : logo MaquisPro plutôt que bouteille.
+/// Conçu pour fonctionner sans réseau, comme le reste du prototype local.
+class MaquisLogoBanner extends StatelessWidget {
+  const MaquisLogoBanner({
     super.key,
-    this.title = 'MaquisPro',
+    this.title = 'Bienvenue',
     this.subtitle = 'Gestion intelligente des boissons',
   });
 
@@ -19,50 +20,96 @@ class ChampagneBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    height: 218,
+    height: 221,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
-      color: _bleu,
-      border: Border.all(color: _or, width: 1.5),
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF08764F), Color(0xFF064831), Color(0xFF002F24)],
+      ),
+      border: Border.all(color: _or, width: 2.5),
       borderRadius: const BorderRadius.all(Radius.circular(22)),
+      boxShadow: const [
+        BoxShadow(color: Color(0x55002620), offset: Offset(0, 7), blurRadius: 11),
+      ],
     ),
-    child: Stack(children: [
-      Positioned(
-        right: 7,
-        top: -9,
-        bottom: -10,
-        width: 164,
-        child: Image.asset(
-          'assets/images/champagne_maquispro.jpg',
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stack) =>
-              const Center(child: Icon(Icons.wine_bar, color: _or, size: 84)),
+    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 122,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/images/maquispro_emblem.svg',
+                width: 112, height: 112,
+                semanticsLabel: 'Logo MaquisPro',
+                placeholderBuilder: (_) =>
+                    const Icon(Icons.sports_bar, size: 72, color: _or),
+              ),
+              const SizedBox(height: 3),
+              const Text(
+                'MaquisPro',
+                style: TextStyle(
+                  fontFamily: 'serif', fontWeight: FontWeight.w900,
+                  color: Color(0xFFF9D66A), fontSize: 20,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      Positioned(
-        top: 36, left: 20, right: 121,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _vert, fontSize: 27, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            Text(subtitle,
-              style: const TextStyle(color: _vert, fontSize: 14)),
-            const SizedBox(height: 18),
-            const Text(
-              'IGC • Impact Global Consulting',
-              style: TextStyle(
-                color: Color(0xFF876819),
-                fontSize: 11, fontWeight: FontWeight.w800),
-            ),
-          ],
+        const SizedBox(width: 8),
+        Container(
+          width: 2, height: 150,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Color(0xFF8E6A1C), Color(0xFFFFE7A3), Color(0xFF8E6A1C),
+            ], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          ),
         ),
-      ),
-    ]),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9E7B0),
+                  border: Border.all(color: _or, width: 1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Text('ESPACE GÉRANT', style: TextStyle(
+                    color: Color(0xFF064831),
+                    fontSize: 11, fontWeight: FontWeight.w900,
+                  )),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(title,
+                maxLines: 3, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white, fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                )),
+              const SizedBox(height: 8),
+              Text(subtitle,
+                maxLines: 3, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 12)),
+              const SizedBox(height: 9),
+              const Text('IGC • IMPACT GLOBAL CONSULTING',
+                maxLines: 2,
+                style: TextStyle(color: Color(0xFFF0D78F),
+                  fontWeight: FontWeight.w700, fontSize: 9)),
+            ],
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -161,7 +208,7 @@ class _MaquisSetupPageState extends State<MaquisSetupPage> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const ChampagneBackground(),
+          const MaquisLogoBanner(),
           const SizedBox(height: 15),
           Text(
             widget.initialProfile == null
