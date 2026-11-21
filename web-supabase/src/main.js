@@ -157,7 +157,15 @@ function showPage(page){
   if(state.role==='serveur'&&!['scan','stock'].includes(page)){
     status('Cette rubrique est réservée au gérant.',true);return;
   }
-  $$('.page').forEach(x=>x.hidden=x.id!=='page-'+page);
+  const target=document.getElementById('page-'+page);
+  if(!target)return;
+  $('.page').forEach(x=>x.hidden=x!==target);
+  // L'onglet actif reste visuellement enfoncé et identifiable au clavier.
+  $('.actions button[data-page]').forEach(button=>{
+    const active=button.dataset.page===page;
+    button.classList.toggle('is-current',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
   if(page!=='scan')void stopCamera();
 }
 // Suivi commercial IGC : lecture seule et filtrée par les règles RLS Supabase.
