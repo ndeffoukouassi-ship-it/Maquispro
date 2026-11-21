@@ -1,15 +1,26 @@
 # MaquisPro IGC — Projet Supabase autonome (pilote)
 
+## État vérifié au 21 novembre 2026
+- Projet Supabase **MaquisPro créé** après accord pour **10 USD par mois** hors consommation, référence `gtiupaovsgspnjbsqear`, région `eu-west-3`.
+- Neuf tables métier et règles RLS déployées **uniquement dans ce nouveau projet** ; E-PROF et IGC AutoWash inchangés.
+- Verrou SQL **ventes_actives=false** installé ; une vente ne peut pas être enregistrée avant validation finale d'IGC.
+- Site Render indépendant : https://maquispro-igc-supabase.onrender.com . Connexion et inscription activées ; vrais encaissements désactivés.
+- **À faire** : créer et confirmer le compte Supabase Auth de l'administrateur IGC, puis attribuer son rôle exclusivement via SQL privilégié.
+- Configurer l'URL de retour dans Supabase Authentication → URL Configuration pour la confirmation par e-mail.
+- Tests PostgreSQL/Vite réussis ; l'audit de sécurité signale néanmoins les fonctions SECURITY DEFINER exposées aux utilisateurs authentifiés. **Ne pas lever le verrou des ventes avant une revue complète.**
+
+
+
 ## Statut (21 novembre 2026)
-**Préparé dans GitHub, PAS EN PRODUCTION.** Le site MaquisPro sur Render continue à fonctionner comme démonstration locale. Le pilote Firebase n'est pas utilisé pour les ventes.
+**Pilote connecté : inscription préparée, ventes réelles verrouillées.** Le site MaquisPro sur Render continue à fonctionner comme démonstration locale. Le pilote Firebase n'est pas utilisé pour les ventes.
 
 **Organisation Supabase connectée** : \`ndeffoukouassi@gmail.com's Org\`, formule **Pro**, contient déjà E-PROF et IGC AutoWash.
-**Devis obtenu via Supabase** pour **un nouveau projet indépendant** : **10 USD / mois récurrents**, hors dépassements d'usage. L'autorisation générale « passer sur Supabase » ne vaut pas accord à ce surcoût. Aucun troisième projet n'a été créé.
+**Devis obtenu via Supabase** pour **un nouveau projet indépendant** : **10 USD / mois récurrents**, hors dépassements d'usage. Cette dépense a été explicitement approuvée et le projet MaquisPro indépendant est maintenant créé.
 **Ne pas** ajouter des tables dans E-PROF ou IGC AutoWash, ne pas déployer ce SQL dans ces projets.
 
 ## Ce qui est préparé
 - \`web-supabase/\` : interface web indépendante en vert, or et bleu clair, logo MaquisPro, comptes Gérant / Serveur, scanner EAN, catalogue de boissons, exports XLSX/DOCX, inventaires, caisse, dépenses, abonnements IGC.
-- \`supabase/maquispro_schema_draft.sql\` : **script SQL de travail non appliqué**, conçu pour une base PostgreSQL Supabase neuve ; accès multi-établissement via RLS.
+- \`supabase/maquispro_schema_draft.sql\` : **schéma source appliqué au seul nouveau projet MaquisPro**, conçu pour une base PostgreSQL Supabase neuve ; accès multi-établissement via RLS.
 - \`tests/supabase-smoke-check.sql\` : scénario local avec une Castel, achat 550 F, vente 650 F, 24 bouteilles -> 23, caisse +650, marge 100 F, retry sans doublon, serveur sans accès aux coûts d'achat ni à la caisse.
 - \`.github/workflows/supabase-pilot-ci.yml\` : vérifie le frontend avec Vite et exécute ces tests sur PostgreSQL 17 local.
 - Aucune clé Supabase privée ou \`service_role\` n'est incluse dans le code source.
