@@ -2,12 +2,13 @@
 <html lang="fr"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07558e">
+<meta name="referrer" content="no-referrer">
 <title>MaquisPro — Comptes sécurisés Supabase (pilote)</title>
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 <script type="module" src="/src/main.js"></script></head><body>
 <header class="top">
   <div class="brand"><img src="/logo.svg" alt="Logo MaquisPro"><span>Maquis<b>Pro</b><small>IGC — Gestion des boissons</small></span></div>
-  <div class="topright"><span class="pilot">PILOTE SUPABASE</span><button id="changePassword" class="minor" type="button" hidden>Changer mon mot de passe</button><button id="logout" class="minor" hidden>Se déconnecter</button></div>
+  <div class="topright"><span class="pilot">PILOTE SUPABASE</span><button id="chooseMaquis" class="minor" type="button" hidden>Mes maquis</button><button id="changePassword" class="minor" type="button" hidden>Changer mon mot de passe</button><button id="logout" class="minor" hidden>Se déconnecter</button></div>
 </header>
 <main>
 <div class="notice" id="configWarning" hidden>La configuration Supabase du projet n'est pas encore ajoutée sur Render. Ce pilote n'est pas activé.</div>
@@ -34,6 +35,25 @@
     <label>Confirmer le nouveau mot de passe<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="12" required></label>
     <button class="gold3d" type="submit">Enregistrer le nouveau mot de passe</button>
   </form>
+</section>
+
+<section id="invitationPanel" class="panel" hidden>
+  <h2>Invitation personnelle — Gérant</h2>
+  <p>Le propriétaire t'a invité à gérer <strong>un seul maquis</strong>. Pas de mot de passe : utilise ton e-mail et un code de vérification Supabase. Le lien expire après 48 heures et n'est utilisable qu'une fois.</p>
+  <div class="card form">
+    <label>Ton adresse e-mail invitée<input id="invitedEmail" type="email" autocomplete="email" placeholder="exemple@domaine.ci" required></label>
+    <button id="requestInviteCode" class="gold3d" type="button">Recevoir mon code de connexion</button>
+    <p class="hint">Selon la configuration des e-mails Supabase, tu recevras un code à 6 chiffres ou un lien de connexion. Dans ce dernier cas, ouvre le lien reçu.</p>
+    <label>Code temporaire reçu par e-mail<input id="inviteOtp" type="text" autocomplete="one-time-code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="6 chiffres"></label>
+    <button id="verifyInviteCode" class="secondary3d" type="button">Vérifier le code</button>
+    <button id="acceptManagerInvitation" class="green3d" type="button">Accepter l'invitation et ouvrir mon maquis</button>
+    <button id="inviteSwitchAccount" class="minor" type="button">Me connecter avec une autre adresse</button>
+  </div>
+</section>
+<section id="myMaquisPanel" class="panel" hidden>
+  <h2>Mes maquis</h2>
+  <p>Chaque établissement possède son propre stock, sa caisse et un seul gérant. Choisis le maquis à consulter.</p>
+  <div id="myMaquisList" class="maquis-grid"></div>
 </section>
 <section id="appPanel" hidden>
   <div class="hero">
@@ -96,9 +116,26 @@
   </section>
   <section id="page-equipe" class="page" hidden><h2>Personnel et accès</h2>
     <p class="hint">Un collaborateur doit d'abord disposer d'un compte Supabase, puis être autorisé par le propriétaire du maquis.</p>
-    <form id="teamForm" class="card form"><label>E-mail du collaborateur<input type="email" name="email" required></label>
-      <label>Rôle<select name="role"><option value="serveur">Serveur</option><option value="gerant">Gérant</option></select></label>
-      <button class="green3d">Donner accès au maquis</button></form>
+    
+    <form id="teamForm" class="card form"><h3>Autoriser un serveur</h3>
+      <label>E-mail du serveur<input type="email" name="email" required></label>
+      <input type="hidden" name="role" value="serveur">
+      <button class="green3d">Donner accès au serveur</button>
+    </form>
+    <section id="managerInviteCard" class="card" hidden>
+      <h3>Gérant de ce maquis</h3>
+      <p id="managerCurrent" class="hint">Vérification du gérant en cours...</p>
+      <button id="removeManager" type="button" class="secondary3d" hidden>Retirer l'accès du gérant</button>
+      <form id="managerInviteForm" class="form">
+        <label>Adresse e-mail du futur gérant<input name="email" type="email" autocomplete="off" placeholder="gerant@exemple.ci" required></label>
+        <button class="gold3d" type="submit">Créer son lien d'invitation (48 h)</button>
+      </form>
+      <div id="managerInviteOutput" class="form" hidden>
+        <label>Lien personnel à envoyer au gérant<input id="managerInviteLink" type="text" readonly></label>
+        <button id="copyManagerInvitation" type="button" class="green3d">Copier le lien d'invitation</button>
+        <p class="hint">Envoie ce lien seulement au gérant concerné. Il devra prouver qu'il possède l'e-mail invité avant d'accéder au maquis.</p>
+      </div>
+    </section>
   </section>
 </section>
 <section id="adminPanel" hidden class="panel"><h2>Administration IGC</h2><p>Réservé aux comptes administrateurs IGC validés dans Supabase. Les montants ci-dessous sont des <strong>tarifs prévus</strong>, pas des paiements reçus.</p>
