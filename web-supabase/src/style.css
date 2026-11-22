@@ -501,3 +501,13 @@ body > header,body > main,body > footer{
  #managerInviteOutput{padding:12px}
  #invitationPanel .card{padding:12px}
 }
+
+/* Préinscriptions IGC : dossiers non commerciaux, reprise sans changer de propriétaire. */
+#preinscriptionsPanel{margin:18px 0;padding:20px;border:2px solid #d8b568}
+#preinscriptionsPanel h3{margin:4px 0 12px;color:#0b467b}
+#preinscriptionsList{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));margin-bottom:20px}
+#preinscriptionsList .maquis-choice{background:linear-gradient(145deg,#f9fdff,#e6f4ff);border-color:#d9bd79}
+#preinscriptionsList .maquis-choice small{overflow-wrap:anywhere}
+.preinscription-form{max-width:720px;margin:23px 0 4px;border-top:1px solid #c5dfee;padding-top:16px}
+.preinscription-form h3{margin:0}
+@media(max-width:600px){#preinscriptionsPanel{padding:12px}#preinscriptionsList{gap:12px}}
