@@ -46,7 +46,7 @@ select public.test_assert((select count(*) from public.mp_preinscriptions)=1,'Pr
 -- Un compte propriétaire inexistant ne peut pas être utilisé pour s'attribuer le maquis.
 set role authenticated;
 set request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
-do $
+do $$
 declare blocked boolean:=false;
 begin
   begin
@@ -54,7 +54,7 @@ begin
   exception when others then blocked:=true;
   end;
   if not blocked then raise exception 'Test: creation attribuee a une fausse proprietaire';end if;
-end $;
+end $$;
 -- Après confirmation du compte du véritable propriétaire, IGC finalise le dossier.
 select public.mp_creer_maquis('Maquis Buzz VIP','Bouaké','+225 01 51 01 22 87','owner@igc.test') as pilot_maquis_id \gset
 select public.test_assert((select count(*) from public.mp_lister_preinscriptions()
