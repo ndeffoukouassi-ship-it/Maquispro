@@ -25,6 +25,7 @@ const state={
   user:null,role:null,maquis:null,tenant:null,admin:false,products:[],sales:[],
   stats:{},refreshing:false,generation:0,channel:null,refreshTimer:null,
   adminClients:[],adminLoading:false,adminTruncated:false,
+  preinscriptions:[],preinscriptionLoading:false,
   myMaquis:[],invitationToken:validInviteToken.test(managerInviteParam||'')?managerInviteParam:null,
   managerLink:'',
   stream:null,scanTimer:null,scanning:false,pendingId:null,pendingCode:null,recoveryMode:false
@@ -210,6 +211,38 @@ function renderAdminClients(){
     (state.adminTruncated?' Affichage limité aux 500 établissements les plus récents.':'')+
     ' Les montants sont des tarifs contractuels, pas des paiements vérifiés. Les ventes réelles restent verrouillées.';
 }
+
+function renderPreinscriptions(){
+  const list=$('#preinscriptionsList');
+  if(!list)return;
+  const pending=state.preinscriptions.filter(p=>p.statut==='en_attente_proprietaire');
+  list.innerHTML=pending.length?pending.map(p=>
+    '<article class="maquis-choice">'+
+    '<div><strong>'+esc(p.nom)+'</strong>'+
+    '<small>'+esc(p.ville)+(p.quartier?' — '+esc(p.quartier):'')+'</small>'+
+    '<small>Tél. : '+esc(p.telephone)+'</small>'+
+    '<small>Propriétaire : compte et e-mail à compléter</small></div>'+
+    '<button class="secondary3d" type="button" data-select-preinscription="'+esc(p.id)+'">Préparer son inscription</button>'+
+    '</article>'
+  ).join('')
+    :'<p>Aucun dossier pilote en attente.</p>';
+}
+async function loadPreinscriptions(){
+  if(!state.admin||state.preinscriptionLoading)return;
+  state.preinscriptionLoading=true;
+  const button=$('#refreshPreinscriptions');
+  if(button)button.disabled=true;
+  try{
+    const data=await rpc('mp_lister_preinscriptions');
+    state.preinscriptions=Array.isArray(data)?data:[];
+    renderPreinscriptions();
+  }catch(e){status('Dossiers pilotes inaccessibles : '+errorText(e),true);}
+  finally{
+    state.preinscriptionLoading=false;
+    if(button)button.disabled=false;
+  }
+}
+
 async function loadAdminClients(){
   if(!client||!state.admin||state.adminLoading)return;
   state.adminLoading=true;
@@ -397,7 +430,10 @@ async function enterAfterAuth(user){
   state.admin=await rpc('mp_est_admin_igc')===true;
   state.adminClients=[];
   $('#adminPanel').hidden=!state.admin;
-  if(state.admin)await loadAdminClients();
+  if(state.admin){
+    await loadAdminClients();
+    await loadPreinscriptions();
+  }
   await loadMyMaquis();
   if(state.invitationToken){
     showManagerInvitation();
@@ -738,6 +774,40 @@ function bind(){
       p_maquis:state.tenant,p_email:f.elements.email.value.trim(),p_role:f.elements.role.value
     }),()=>'Accès collaborateur accordé sur cet établissement.');
   };
+  $('#refreshPreinscriptions').onclick=()=>void loadPreinscriptions();
+  $('#preinscriptionForm').onsubmit=async e=>{
+    e.preventDefault();
+    if(!state.admin)return status('Accès IGC requis.',true);
+    const form=e.currentTarget;
+    const button=form.querySelector('button[type=submit]');
+    button.disabled=true;
+    try{
+      await rpc('mp_preinscrire_maquis',{
+        p_nom:form.elements.nom.value.trim(),
+        p_ville:form.elements.ville.value.trim(),
+        p_quartier:form.elements.quartier.value.trim(),
+        p_telephone:form.elements.telephone.value.trim()
+      });
+      form.reset();
+      await loadPreinscriptions();
+      status('Maquis préenregistré. Le compte personnel du propriétaire reste nécessaire avant son activation.');
+    }catch(e){status(errorText(e),true);}
+    finally{button.disabled=false;}
+  };
+  $('#preinscriptionsList').addEventListener('click',e=>{
+    const button=e.target.closest('button[data-select-preinscription]');
+    if(!button||!state.admin)return;
+    const p=state.preinscriptions.find(x=>x.id===button.dataset.selectPreinscription);
+    if(!p)return;
+    const form=$('#createMaquisForm');
+    form.elements.nom.value=p.nom;
+    form.elements.ville.value=p.ville;
+    form.elements.telephone.value=p.telephone;
+    form.elements.ownerEmail.value='';
+    form.scrollIntoView({behavior:'smooth',block:'center'});
+    form.elements.ownerEmail.focus({preventScroll:true});
+    status('Dossier '+p.nom+' préparé. Saisis l’e-mail du compte confirmé de la propriétaire avant de créer le maquis.');
+  });
   $('#createMaquisForm').onsubmit=e=>{
     e.preventDefault();const f=e.currentTarget,data=new FormData(f);
     void submitRpc(f,'mp_creer_maquis',()=>({
