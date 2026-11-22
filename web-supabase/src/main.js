@@ -157,6 +157,7 @@ function showAuthAfterRecovery(){
   $('#adminPanel').hidden=true;
   $('#myMaquisPanel').hidden=true;
   $('#invitationPanel').hidden=true;
+  $('#chooseMaquis').hidden=true;
   $('#changePassword').hidden=true;
   $('#logout').hidden=true;
 }
