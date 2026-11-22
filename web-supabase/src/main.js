@@ -169,9 +169,9 @@ function showPage(page){
   }
   const target=document.getElementById('page-'+page);
   if(!target)return;
-  $('.page').forEach(x=>x.hidden=x!==target);
+  document.querySelectorAll('.page').forEach(x=>x.hidden=x!==target);
   // L'onglet actif reste visuellement enfoncé et identifiable au clavier.
-  $('.actions button[data-page]').forEach(button=>{
+  document.querySelectorAll('.actions button[data-page]').forEach(button=>{
     const active=button.dataset.page===page;
     button.classList.toggle('is-current',active);
     button.setAttribute('aria-pressed',String(active));
