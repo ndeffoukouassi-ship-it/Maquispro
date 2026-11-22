@@ -164,6 +164,22 @@
     </div>
     <p class="hint" id="adminCountNote">Les renouvellements doivent être validés après contrôle du paiement par IGC. Aucune activation automatique.</p>
   </section>
+  <section id="preinscriptionsPanel" class="card" aria-label="Préinscriptions de maquis pilotes">
+    <h3>Maquis pilotes en préparation</h3>
+    <p class="hint">Ces dossiers sont en attente du compte personnel du propriétaire. Ils ne créent ni accès, ni licence, ni encaissement. Lorsque le propriétaire dispose de son compte confirmé, sélectionne son dossier pour préparer l'inscription.</p>
+    <div id="preinscriptionsList" class="maquis-grid">
+      <p>Chargement des dossiers en attente...</p>
+    </div>
+    <button type="button" id="refreshPreinscriptions" class="secondary3d">Actualiser les dossiers</button>
+    <form id="preinscriptionForm" class="form preinscription-form">
+      <h3>Préparer un autre maquis</h3>
+      <label>Nom du maquis<input name="nom" required maxlength="80"></label>
+      <label>Ville<input name="ville" required maxlength="80"></label>
+      <label>Quartier<input name="quartier" maxlength="120"></label>
+      <label>Téléphone<input name="telephone" required maxlength="25"></label>
+      <button type="submit" class="gold3d">Préenregistrer sans activation</button>
+    </form>
+  </section>
   <form id="createMaquisForm" class="form card"><h3>Inscrire un maquis</h3>
     <label>Nom du maquis<input name="nom" required></label><label>E-mail du propriétaire<input type="email" name="ownerEmail" required></label>
     <label>Téléphone<input name="telephone" required></label><label>Ville<input name="ville" required></label>
