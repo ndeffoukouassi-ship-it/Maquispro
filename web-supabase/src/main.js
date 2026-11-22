@@ -493,6 +493,125 @@ async function submitRpc(form,name,build,confirmation){
   }catch(e){status(errorText(e),true);return null;}
 }
 function bind(){
+  $('#chooseMaquis').onclick=()=>openMyMaquis();
+  $('#myMaquisList').addEventListener('click',async e=>{
+    const button=e.target.closest('button[data-enter-maquis]');
+    if(!button||!state.user)return;
+    const id=button.dataset.enterMaquis;
+    if(!uuidRE.test(id)||!state.myMaquis.some(m=>m.id===id))return;
+    button.disabled=true;
+    try{
+      sessionStorage.setItem('mp_tenant',id);
+      await enterTenant(id);
+    }catch(error){status(errorText(error),true);}
+    finally{button.disabled=false;}
+  });
+  $('#managerInviteForm').onsubmit=async e=>{
+    e.preventDefault();
+    if(state.role!=='proprietaire'||!uuidRE.test(state.tenant||''))return;
+    const form=e.currentTarget;
+    const email=form.elements.email.value.trim().toLowerCase();
+    const button=form.querySelector('button[type=submit]');
+    button.disabled=true;
+    try{
+      const token=await rpc('mp_inviter_gerant',{p_maquis:state.tenant,p_email:email});
+      if(!validInviteToken.test(token||''))throw Error('Réponse de création d’invitation invalide.');
+      state.managerLink=window.location.origin+'/?invitation='+token;
+      $('#managerInviteLink').value=state.managerLink;
+      $('#managerInviteOutput').hidden=false;
+      form.reset();
+      status('Lien personnel créé pour '+email+'. Il expire dans 48 heures et donne accès à un seul maquis.');
+    }catch(error){status(errorText(error),true);}
+    finally{button.disabled=false;}
+  };
+  $('#copyManagerInvitation').onclick=async()=>{
+    if(!state.managerLink)return status('Crée d’abord une invitation.',true);
+    try{
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(state.managerLink);
+        status('Lien copié. Transmets-le uniquement au gérant concerné.');
+      }else{
+        window.prompt('Copie ce lien personnel puis envoie-le au gérant :',state.managerLink);
+      }
+    }catch(error){status('Copie le lien affiché et envoie-le au gérant.',true);}
+  };
+  $('#removeManager').onclick=async()=>{
+    if(state.role!=='proprietaire'||!state.tenant)return;
+    if(!window.confirm('Retirer immédiatement l’accès de ce gérant au maquis ?'))return;
+    try{
+      await rpc('mp_retirer_gerant',{p_maquis:state.tenant});
+      state.managerLink='';
+      $('#managerInviteOutput').hidden=true;
+      await loadCurrentManager();
+      status('L’accès du gérant a été retiré. Tu peux inviter un autre gérant.');
+    }catch(error){status(errorText(error),true);}
+  };
+  $('#requestInviteCode').onclick=async()=>{
+    if(!state.invitationToken||!canRequestEmail())return;
+    const email=$('#invitedEmail').value.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      return status('Saisis l’adresse e-mail que le propriétaire a invitée.',true);
+    }
+    emailSending=true;refreshEmailControls();
+    try{
+      const {error}=await client.auth.signInWithOtp({
+        email,options:{
+          shouldCreateUser:true,
+          emailRedirectTo:window.location.origin+'/?invitation='+state.invitationToken
+        }
+      });
+      if(error)throw error;
+      setEmailCooldown(EMAIL_RETRY_MINUTES);
+      status('Vérifie ton e-mail. Saisis le code à six chiffres reçu, ou ouvre le lien de connexion si Supabase envoie un lien.');
+    }catch(error){
+      if(emailRateLimit(error))setEmailCooldown(EMAIL_LIMIT_MINUTES);
+      status(errorText(error),true);
+    }finally{emailSending=false;refreshEmailControls();}
+  };
+  $('#verifyInviteCode').onclick=async()=>{
+    if(!state.invitationToken)return status('Lien d’invitation manquant ou expiré.',true);
+    const email=$('#invitedEmail').value.trim().toLowerCase();
+    const code=$('#inviteOtp').value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^[0-9]{6}$/.test(code)){
+      return status('Indique ton e-mail invité et le code temporaire à six chiffres.',true);
+    }
+    const button=$('#verifyInviteCode');button.disabled=true;
+    try{
+      const {data,error}=await client.auth.verifyOtp({email,token:code,type:'email'});
+      if(error)throw error;
+      const user=data?.user||(await client.auth.getUser()).data?.user;
+      if(!user)throw Error('Vérification réussie, mais la session n’est pas disponible.');
+      await enterAfterAuth(user);
+      showManagerInvitation();
+      status('E-mail vérifié. Appuie maintenant sur « Accepter l’invitation ».');
+    }catch(error){status(errorText(error),true);}
+    finally{button.disabled=false;}
+  };
+  $('#acceptManagerInvitation').onclick=async()=>{
+    if(!state.invitationToken)return status('Invitation manquante.',true);
+    const button=$('#acceptManagerInvitation');button.disabled=true;
+    try{
+      const {data:{user},error:userError}=await client.auth.getUser();
+      if(userError||!user)throw Error('Connecte-toi avec le code reçu sur l’e-mail invité.');
+      const id=await rpc('mp_accepter_invitation_gerant',{p_token:state.invitationToken});
+      if(!uuidRE.test(id))throw Error('Impossible de récupérer le code de ton maquis.');
+      state.invitationToken=null;
+      const address=new URL(window.location.href);
+      address.searchParams.delete('invitation');
+      window.history.replaceState(null,'',address.pathname+address.search+address.hash);
+      sessionStorage.setItem('mp_tenant',id);
+      await enterAfterAuth(user);
+      status('Invitation acceptée. Tu peux gérer ton maquis depuis cet espace.');
+    }catch(error){status(errorText(error),true);}
+    finally{button.disabled=false;}
+  };
+  $('#inviteSwitchAccount').onclick=async()=>{
+    if(client)await client.auth.signOut();
+    state.user=null;
+    resetUI();
+    showManagerInvitation();
+    status('Saisis l’adresse invitée et demande un code de connexion. Aucun mot de passe nécessaire.');
+  };
   $('#loginForm').addEventListener('submit',async event=>{
     event.preventDefault();
     if(!configured)return status('Projet Supabase pas encore configuré.',true);
@@ -697,6 +816,9 @@ async function init(){
       const {data:{user},error:userError}=await client.auth.getUser();
       if(userError)throw userError;
       if(user)await enterAfterAuth(user);
+    }else if(state.invitationToken){
+      showManagerInvitation();
+      status('Invitation reçue. Saisis ton e-mail et demande un code de connexion sans mot de passe.');
     }else status('Projet Supabase connecté. Crée ton compte IGC ou connecte-toi.');
   }catch(e){status(errorText(e),true);}
 }
