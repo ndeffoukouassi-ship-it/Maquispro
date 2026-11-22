@@ -74,3 +74,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/maquispro_verrou_mise_en_service.sql
       - name: Vérifier qu'une vente non autorisée reste impossible
         run: psql -v ON_ERROR_STOP=1 -f tests/supabase-smoke-guard.sql
+      - name: Installer invitations et exclusivité du gérant par maquis
+        run: psql -v ON_ERROR_STOP=1 -f supabase/2026-11-22-gerant-par-maquis-et-invitations.sql
+      - name: Tester les invitations sécurisées et plusieurs maquis par propriétaire
+        run: psql -v ON_ERROR_STOP=1 -f tests/supabase-manager-invitations.sql
