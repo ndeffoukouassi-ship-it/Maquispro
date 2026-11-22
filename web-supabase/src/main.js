@@ -16,12 +16,17 @@ const configured=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)&&key.length
 const backendReady=import.meta.env.VITE_MAQUISPRO_BACKEND_READY==='true';
 const salesReady=import.meta.env.VITE_MAQUISPRO_SALES_ENABLED==='true';
 const recoveryLink=typeof window!=='undefined' && new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type')==='recovery';
+const managerInviteParam=typeof window!=='undefined'
+  ?new URLSearchParams(window.location.search).get('invitation'):null;
+const validInviteToken=/^[0-9a-f]{64}$/;
 const client=configured?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 
 const state={
   user:null,role:null,maquis:null,tenant:null,admin:false,products:[],sales:[],
   stats:{},refreshing:false,generation:0,channel:null,refreshTimer:null,
   adminClients:[],adminLoading:false,adminTruncated:false,
+  myMaquis:[],invitationToken:validInviteToken.test(managerInviteParam||'')?managerInviteParam:null,
+  managerLink:'',
   stream:null,scanTimer:null,scanning:false,pendingId:null,pendingCode:null,recoveryMode:false
 };
 function status(message,bad=false){
@@ -54,7 +59,7 @@ function setEmailCooldown(minutes){
 function refreshEmailControls(){
   const waiting=emailWaitMs();
   const disabled=emailSending||waiting>0;
-  for(const id of ['signup','resendConfirm','forgotPassword']){
+  for(const id of ['signup','resendConfirm','forgotPassword','requestInviteCode']){
     const button=$('#'+id);if(button)button.disabled=disabled;
   }
   const help=$('#emailHelp');
@@ -127,6 +132,7 @@ function resetUI(){
   state.role=null;state.tenant=null;state.maquis=null;
   state.products=[];state.sales=[];state.stats={};state.pendingId=null;state.pendingCode=null;
   $('#appPanel').hidden=true;
+  $('#myMaquisPanel').hidden=true;
   $('#appPanel').dataset.role='';
   $('#connection').textContent='Non connecté à un maquis';
 }
@@ -136,6 +142,8 @@ function showPasswordChange(){
   $('#authPanel').hidden=true;
   $('#appPanel').hidden=true;
   $('#adminPanel').hidden=true;
+  $('#myMaquisPanel').hidden=true;
+  $('#invitationPanel').hidden=true;
   $('#passwordRecoveryPanel').hidden=false;
   $('#changePassword').hidden=true;
   $('#logout').hidden=true;
@@ -147,6 +155,8 @@ function showAuthAfterRecovery(){
   $('#authPanel').hidden=false;
   $('#appPanel').hidden=true;
   $('#adminPanel').hidden=true;
+  $('#myMaquisPanel').hidden=true;
+  $('#invitationPanel').hidden=true;
   $('#changePassword').hidden=true;
   $('#logout').hidden=true;
 }
@@ -274,6 +284,73 @@ async function refresh(){
   }catch(e){if(gen===state.generation)status(errorText(e),true);}
   finally{state.refreshing=false;}
 }
+
+function renderMyMaquis(){
+  const panel=$('#myMaquisPanel');
+  const list=$('#myMaquisList');
+  $('#chooseMaquis').hidden=state.myMaquis.length===0;
+  list.innerHTML=state.myMaquis.length?state.myMaquis.map(m=>
+    '<article class="maquis-choice">'+
+    '<div><strong>'+esc(m.nom)+'</strong><small>'+esc(m.ville||'Ville non renseignée')+
+    ' · '+(m.role==='proprietaire'?'Propriétaire':m.role==='gerant'?'Gérant':'Serveur')+
+    ' · '+esc(m.statut)+'</small></div>'+
+    '<button type="button" class="green3d" data-enter-maquis="'+esc(m.id)+'">Ouvrir ce maquis</button>'+
+    '</article>'
+  ).join(''):'<p>Aucun maquis ne t’a encore été attribué.</p>';
+  panel.hidden=state.myMaquis.length===0;
+}
+async function loadMyMaquis(){
+  state.myMaquis=[];
+  if(!client||!state.user)return;
+  const {data:members,error}=await client.from('mp_membres')
+    .select('maquis_id,role').eq('user_id',state.user.id).eq('actif',true);
+  if(error)throw error;
+  const ids=(members||[]).map(m=>m.maquis_id);
+  if(ids.length){
+    const {data:maquis,error:err}=await client.from('mp_maquis')
+      .select('id,nom,ville,statut,proprietaire_uid').in('id',ids);
+    if(err)throw err;
+    const byId=new Map((maquis||[]).map(m=>[m.id,m]));
+    state.myMaquis=(members||[]).filter(m=>byId.has(m.maquis_id)).map(m=>({
+      ...byId.get(m.maquis_id),role:m.role
+    })).sort((a,b)=>a.nom.localeCompare(b.nom,'fr'));
+  }
+  renderMyMaquis();
+}
+function openMyMaquis(){
+  if(!state.user)return status('Connecte-toi pour afficher tes maquis.',true);
+  resetUI();
+  renderMyMaquis();
+  $('#authPanel').hidden=true;
+  $('#adminPanel').hidden=!state.admin;
+  $('#invitationPanel').hidden=true;
+  $('#logout').hidden=false;
+  $('#changePassword').hidden=false;
+  status('Choisis le maquis que tu souhaites gérer ou consulter.');
+}
+function showManagerInvitation(){
+  $('#invitationPanel').hidden=false;
+  $('#myMaquisPanel').hidden=true;
+  $('#authPanel').hidden=true;
+  $('#appPanel').hidden=true;
+  $('#adminPanel').hidden=true;
+  $('#passwordRecoveryPanel').hidden=true;
+  $('#chooseMaquis').hidden=true;
+  $('#changePassword').hidden=true;
+  $('#logout').hidden=!state.user;
+}
+async function loadCurrentManager(){
+  if(state.role!=='proprietaire'||!state.tenant)return;
+  const current=await rpc('mp_gerant_du_maquis',{p_maquis:state.tenant});
+  if(!state.tenant||state.role!=='proprietaire')return;
+  const manager=Array.isArray(current)?current[0]:null;
+  $('#managerCurrent').textContent=manager
+    ?'Gérant actuel : '+manager.email+' (un seul gérant autorisé)'
+    :'Aucun gérant actif pour ce maquis.';
+  $('#managerInviteForm').hidden=!!manager;
+  $('#removeManager').hidden=!manager;
+}
+
 async function enterTenant(maquisId){
   if(!uuidRE.test(maquisId))throw Error('Identifiant du maquis invalide (UUID).');
   if(!state.user)throw Error('Compte non connecté.');
@@ -284,6 +361,8 @@ async function enterTenant(maquisId){
   resetUI();
   state.role=data.role;state.tenant=maquisId;
   $('#appPanel').hidden=false;
+  $('#myMaquisPanel').hidden=true;
+  $('#invitationPanel').hidden=true;
   $('#authPanel').hidden=true;
   $('#appPanel').dataset.role=state.role;
   $('#connection').textContent='Connecté à Supabase';
@@ -293,6 +372,9 @@ async function enterTenant(maquisId){
   $('#inventoryForm').hidden=server;
   $('#expenseManager').hidden=server;
   $('#teamForm').hidden=state.role!=='proprietaire';
+  $('#managerInviteCard').hidden=state.role!=='proprietaire';
+  $('#managerInviteOutput').hidden=true;
+  if(state.role==='proprietaire')await loadCurrentManager();
   $$('.actions button').forEach(b=>b.hidden=server&&!['scan','stock'].includes(b.dataset.page));
   await refresh();
   showPage('scan');
@@ -311,26 +393,40 @@ async function enterAfterAuth(user){
   $('#changePassword').hidden=false;
   $('#passwordRecoveryPanel').hidden=true;
   state.recoveryMode=false;
-  const admin=await rpc('mp_est_admin_igc');
-  state.admin=admin===true;
+  state.admin=await rpc('mp_est_admin_igc')===true;
   state.adminClients=[];
   $('#adminPanel').hidden=!state.admin;
   if(state.admin)await loadAdminClients();
+  await loadMyMaquis();
+  if(state.invitationToken){
+    showManagerInvitation();
+    status('Connecte-toi avec l’e-mail invité, puis confirme ton rôle de gérant.');
+    return;
+  }
   const tenant=sessionStorage.getItem('mp_tenant')||$('#tenantId').value.trim();
-  if(tenant && !uuidRE.test(tenant)){
-    // Un nom d’établissement ou le nom du projet Firebase n’est pas un UUID.
-    // Supprimer la valeur enregistrée pour éviter une erreur à chaque reconnexion.
+  const selected=state.myMaquis.find(m=>m.id===tenant);
+  if(tenant&&!selected){
     sessionStorage.removeItem('mp_tenant');
     $('#tenantId').value='';
   }
-  if(tenant && uuidRE.test(tenant)){
-    try{await enterTenant(tenant);}
-    catch(e){status(errorText(e),true);$('#authPanel').hidden=false;}
-  }else{
-    $('#authPanel').hidden=state.admin;
-    status(state.admin?'Administrateur IGC connecté. Consulte le parc clients ou inscris un maquis.'
-      :'Ton compte est connecté. Le droit Administrateur IGC doit encore être attribué par IGC. Laisse le code du maquis vide pour cet accès.');
+  if(selected){
+    try{await enterTenant(selected.id);return;}
+    catch(e){status(errorText(e),true);}
   }
+  if(state.myMaquis.length===1){
+    await enterTenant(state.myMaquis[0].id);
+    return;
+  }
+  if(state.myMaquis.length>1){
+    $('#authPanel').hidden=true;
+    $('#myMaquisPanel').hidden=false;
+    status('Choisis ton maquis. Chaque établissement a sa propre caisse et son propre gérant.');
+    return;
+  }
+  $('#myMaquisPanel').hidden=true;
+  $('#authPanel').hidden=state.admin;
+  status(state.admin?'Administrateur IGC connecté. Inscris les établissements de tes clients.'
+    :'Compte connecté. Aucun maquis ne t’a encore été attribué par le propriétaire ou IGC.');
 }
 async function sale(code){
   assertOnline();
