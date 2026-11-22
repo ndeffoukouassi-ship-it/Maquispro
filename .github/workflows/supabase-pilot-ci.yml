@@ -78,3 +78,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/2026-11-22-gerant-par-maquis-et-invitations.sql
       - name: Tester les invitations sécurisées et plusieurs maquis par propriétaire
         run: psql -v ON_ERROR_STOP=1 -f tests/supabase-manager-invitations.sql
+      - name: Installer préinscriptions pilotes IGC
+        run: psql -v ON_ERROR_STOP=1 -f supabase/2026-11-22-preinscription-pilote.sql
+      - name: Tester préinscription sécurisée sans propriétaire
+        run: psql -v ON_ERROR_STOP=1 -f tests/supabase-preinscription-check.sql
