@@ -43,3 +43,27 @@ reset role;
 select public.test_assert((select count(*) from public.mp_maquis)=:tenants_before::int,
   'Une préinscription ne crée pas de maquis commercial');
 select public.test_assert((select count(*) from public.mp_preinscriptions)=1,'Préinscription persistée');
+-- Un compte propriétaire inexistant ne peut pas être utilisé pour s'attribuer le maquis.
+set role authenticated;
+set request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
+do $
+declare blocked boolean:=false;
+begin
+  begin
+    perform public.mp_creer_maquis('Maquis Buzz VIP','Bouaké','+225 01 51 01 22 87','proprietaire-inconnu@igc.test');
+  exception when others then blocked:=true;
+  end;
+  if not blocked then raise exception 'Test: creation attribuee a une fausse proprietaire';end if;
+end $;
+-- Après confirmation du compte du véritable propriétaire, IGC finalise le dossier.
+select public.mp_creer_maquis('Maquis Buzz VIP','Bouaké','+225 01 51 01 22 87','owner@igc.test') as pilot_maquis_id \gset
+select public.test_assert((select count(*) from public.mp_lister_preinscriptions()
+  where statut='dossier_finalise')=1,'Dossier pilot lie au maquis');
+reset role;
+select public.test_assert(
+  (select proprietaire_uid from public.mp_maquis where id=:'pilot_maquis_id'::uuid)
+    ='22222222-2222-4222-8222-222222222222'::uuid,'Proprietaire authentifie conserve ses droits');
+select public.test_assert(
+  (select statut from public.mp_maquis where id=:'pilot_maquis_id'::uuid)='en_attente',
+  'Licence toujours non active apres preinscription');
+
