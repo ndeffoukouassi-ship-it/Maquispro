@@ -1,0 +1,513 @@
+:root{font:15px/1.5 Inter,system-ui,-apple-system,Arial,sans-serif;color:#0b3b31;background:linear-gradient(150deg,#cceaff,#e8f7ff 65%,#c2e1f5)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button[disabled]{opacity:.55;cursor:not-allowed}
+header.top{background:linear-gradient(140deg,#09583b,#003e2f);border-bottom:3px solid #c8a43b;box-shadow:0 7px 20px #00271f44;color:white;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px max(15px,calc((100vw - 1100px)/2));}
+.brand{display:flex;align-items:center;gap:13px;font:700 30px Georgia,serif}.brand img{width:56px;height:56px;border-radius:12px;filter:drop-shadow(0 2px 4px #001d16)}.brand b{color:#edc957}.brand small{display:block;font:600 11px system-ui;color:#e8d8a4}.topright{display:flex;align-items:center;gap:10px}.pilot{background:#fff0b8;border-radius:20px;padding:5px 9px;font-size:10px;font-weight:850;color:#154635;letter-spacing:.05em}
+main{max-width:1100px;margin:auto;padding:20px 16px 100px}.notice{padding:13px 18px;background:#fff1d0;border:1px solid #d5a94d;border-radius:12px;margin:10px 0;font-weight:700;color:#72501b}.notice.error{background:#ffe6e4;border-color:#ce9c92;color:#a32a20}
+.panel,.page{padding:23px;margin:18px 0;border-radius:23px;border:2px solid #d7c47c;background:#f5fbffed;box-shadow:0 8px 20px #0a4c4630}.page[hidden],[hidden]{display:none!important}
+h1,h2,h3{line-height:1.2}h1{font:700 clamp(24px,4vw,38px) Georgia,serif;margin:6px 0 15px}h2{font:700 23px Georgia,serif}h3{font-size:17px}p{line-height:1.52}.hint{color:#466b65;font-size:13px}
+.form{display:grid;gap:13px}.form label{font-weight:700;display:grid;gap:5px;color:#345c51}input,select{border:1px solid #afc6c4;border-radius:11px;padding:12px;background:#fff;color:#104434;width:100%;min-width:0}input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #d1ac43;outline-offset:2px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.gold3d,.green3d,.secondary3d{padding:13px 17px;border-radius:15px;font-weight:850;box-shadow:inset 0 2px 2px #fff9,0 4px 0 #84671f,0 8px 15px #062f1e55;transition:transform .12s}
+.gold3d{background:linear-gradient(#fff2b1,#d5aa39);border:2px solid #ab832d;color:#06412e}.green3d{background:linear-gradient(130deg,#139967,#003d2d);border:2px solid #d9af3a;color:white;box-shadow:inset 0 2px 2px #fff7,0 4px 0 #886a20,0 8px 15px #062f1e55}.secondary3d{background:#e7f6ff;color:#064d35;border:2px solid #dabd64}.gold3d:active,.green3d:active,.secondary3d:active{transform:translateY(4px);box-shadow:none}.minor{background:transparent;border:1px solid #a8d8cd;color:inherit;border-radius:10px;padding:8px 12px}
+.hero{display:grid;grid-template-columns:170px 1fr;align-items:center;gap:20px;border-radius:24px;padding:18px;background:linear-gradient(135deg,#085d40,#003b2c);color:#fff;border:3px solid #d2b34b;box-shadow:0 7px 0 #977c30,0 12px 18px #082b2770}.hero img{width:160px;border-radius:18px;box-shadow:0 5px 14px #00170e66}.hero p{color:#e6f2ee}.hero small{color:#d5ca9b}.eyebrow{background:#f9e9b4;color:#034f37;font-weight:800;border-radius:99px;padding:8px 17px;display:inline-block}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:24px 0}.metrics article{background:linear-gradient(#f9ffff,#e6f3ff);border:2px solid #d1b352;box-shadow:inset 0 2px 1px white,0 6px 0 #b3994a,0 9px 15px #0b47483d;border-radius:15px;padding:17px 11px}.metrics small{display:block;color:#4b6d63;font-size:12px}.metrics strong{font-size:21px;white-space:nowrap}
+.actions{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.actions button{background:linear-gradient(135deg,#119367,#00513a,#002f24);border:2px solid #edc45f;border-radius:19px;box-shadow:inset 0 2px 3px #fff6,inset 0 -5px 7px #002518,0 6px 0 #927522,0 10px 13px #034b414c;padding:23px 8px;color:#fff;font-size:16px;font-weight:850}.actions button:active{transform:translateY(4px);box-shadow:0 2px 0 #927522}
+.card{border:1px solid #cbded7;background:linear-gradient(155deg,#fff,#edf9ff);border-radius:17px;padding:18px;box-shadow:0 5px 12px #0d424124}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:18px}.tableScroll{overflow:auto;border-radius:15px;border:1px solid #afc6bd;background:#fff}.tableScroll table{width:100%;border-collapse:collapse;min-width:580px}th{background:#06563c;color:#fff;text-align:left;padding:12px}td{border-bottom:1px solid #dce7e5;padding:11px}td strong{color:#05452d}.result{font-weight:850;color:#087e52;padding:8px 0}.result.bad{color:#a92324}.page video{width:100%;max-height:320px;object-fit:cover;border:3px solid #d4b354;border-radius:15px}.page b{color:#074a34}
+#cashToday{display:block;font-size:32px;color:#074a34}#inventoryFields{display:grid;gap:9px}.inventory-item{display:grid;grid-template-columns:1fr 85px;align-items:center;gap:8px}footer{background:#024634;color:#ddeddf;text-align:center;padding:16px;font-size:12px}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:580px){header.top{padding:10px}.brand{font-size:23px}.brand img{width:46px;height:46px}.pilot{font-size:9px}.hero{grid-template-columns:108px 1fr;gap:9px;padding:11px}.hero img{width:100px}.hero h1{font-size:22px}.eyebrow{font-size:11px;padding:5px 10px}.metrics article{padding:10px 8px}.metrics strong{font-size:17px}.actions{grid-template-columns:repeat(3,1fr)}.actions button{font-size:12px;padding:15px 4px}.panel,.page{padding:15px}.grid{grid-template-columns:1fr}}
+
+/* Téléchargements Excel et Word, visibles uniquement aux responsables */
+.catalogue-export{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;margin:20px 0;background:linear-gradient(145deg,#f1fbff,#eaf7ef);border:2px solid #dfc16a}
+.catalogue-export h3{margin:0 0 5px;color:#064b37}
+.catalogue-export p{margin:0;max-width:460px;font-size:13px;color:#537266}
+.catalogue-export-buttons{display:flex;flex-wrap:wrap;gap:12px}
+.catalogue-export-buttons button{font-size:13px}
+@media(max-width:580px){.catalogue-export-buttons{display:grid;grid-template-columns:1fr 1fr;width:100%}.catalogue-export-buttons button{font-size:12px;padding:11px 6px}}
+
+/* Les prix d'achat ne sont jamais présentés dans l'espace serveur.
+   La base SQL protège aussi les colonnes via les RPC filtrés. */
+#appPanel[data-role="serveur"] .manager-price{display:none}
+#appPanel[data-role="serveur"] #catalogueExportPanel{display:none}
+#appPanel[data-role="serveur"] .actions button[hidden]{display:none}
+
+
+/* Administration IGC : gestion visuelle des contrats, aucun paiement automatique. */
+.admin-pricing{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.admin-pricing span{display:flex;flex-direction:column;gap:7px;border:2px solid #dcc475;background:linear-gradient(160deg,#faffff,#e2f3ed);border-radius:16px;padding:15px;color:#285849;font-weight:700;box-shadow:0 4px 9px #063c2826}
+.admin-pricing b{font-size:20px;color:#064831}
+.admin-overview{background:#effaff;border:1px solid #d3bd6e;border-radius:20px;margin:22px 0;padding:18px}
+.admin-overview-title{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.admin-overview-title h3{margin:0;color:#044933}
+.admin-overview-title button{font-size:13px;padding:10px 13px}
+.admin-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:19px 0}
+.admin-kpis div{background:#fff;border:1px solid #d5b966;border-radius:14px;padding:14px 10px;box-shadow:0 5px 10px #03513d19}
+.admin-kpis small{font-size:12px;display:block;min-height:34px;color:#4d6b5f}
+.admin-kpis strong{display:block;font-size:26px;color:#034731;margin-top:2px;font-variant-numeric:tabular-nums}
+.admin-filters{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px}
+.admin-filters label{font-weight:800;color:#315b49}
+.admin-filters input,.admin-filters select{margin-top:7px}
+.admin-table{min-width:720px}
+.admin-table td{vertical-align:middle}
+.admin-table td:first-child{min-width:170px}
+.admin-table td strong,.admin-table td small,.admin-table td code{display:block}
+.admin-table td small{color:#567067}
+.admin-table td code{color:#47746d;font-size:10px;overflow-wrap:anywhere}
+.admin-select{font-size:12px;padding:8px 12px;box-shadow:0 3px 0 #bb9b3a,0 5px 6px #002b1b2e;white-space:nowrap}
+.admin-status{display:inline-block;padding:5px 9px;border-radius:20px;font-weight:800;font-size:12px;color:#0c4734;background:#e6f4eb}
+.admin-status-bientot,.admin-status-en_attente{color:#8b5614;background:#fff2bf}
+.admin-status-expire,.admin-status-suspendu{color:#a12829;background:#ffe7e7}
+.admin-status-inconnu{color:#6a526f;background:#f2e9fa}
+#adminCountNote{margin-top:13px}
+@media(max-width:700px){
+  .admin-pricing{grid-template-columns:1fr}
+  .admin-pricing span{flex-direction:row;justify-content:space-between;gap:10px}
+  .admin-pricing b{font-size:16px;white-space:nowrap}
+  .admin-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-filters{grid-template-columns:1fr}
+  .admin-overview{padding:12px}
+  .admin-overview-title h3{font-size:16px}
+}
+
+/* Information claire quand l'envoi de courriel est suspendu sur ce navigateur. */
+.auth-email-help{margin-top:12px;padding:12px 14px;background:#fff4d5;border:1px solid #d5b052;border-radius:12px;color:#664a18;font-weight:700;font-size:13px;line-height:1.5}
+
+/* Entête mobile : empêcher le débordement des boutons d'administration. */
+@media(max-width:740px){
+  header.top{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:10px;
+    padding:12px 14px;
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .brand{width:100%;min-width:0;font-size:clamp(21px,5.4vw,29px);gap:10px}
+  .brand img{width:48px;height:48px;flex:none}
+  .brand span{min-width:0}
+  .brand small{line-height:1.4;font-size:10px}
+  .topright{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+    max-width:100%;
+  }
+  .topright .pilot{flex:none;margin-right:auto}
+  .topright .minor{
+    flex:0 1 auto;
+    min-width:0;
+    max-width:100%;
+    font-size:12px;
+    line-height:1.25;
+    white-space:normal;
+    text-align:center;
+    padding:9px 12px;
+  }
+  main{overflow-wrap:anywhere}
+}
+
+/* MaquisPro IGC — signature visuelle 3D, boutons vert émeraude et or.
+   Les animations sont décoratives et respectent la préférence de mouvement réduit. */
+:root{
+  --mp-face-green-1:#18a573;
+  --mp-face-green-2:#006849;
+  --mp-face-green-3:#003c2d;
+  --mp-gold-light:#fff5c4;
+  --mp-gold-mid:#ecc454;
+  --mp-gold-dark:#9c7422;
+  --mp-depth:#886819;
+}
+:is(.gold3d,.green3d,.secondary3d,.actions button,.minor){
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border-radius:17px;
+  font-weight:850;
+  text-align:center;
+  text-decoration:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform 160ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 160ms ease,filter 160ms ease,background-color 160ms ease;
+  will-change:transform;
+}
+:is(.gold3d,.green3d,.secondary3d,.actions button,.minor)::before{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  z-index:-1;
+  inset:2px 5px auto 5px;
+  height:44%;
+  border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.06) 64%,transparent);
+}
+:is(.gold3d,.green3d,.secondary3d,.actions button,.minor):not(:disabled)::after{
+  content:"";
+  position:absolute;
+  inset:-35% -65%;
+  z-index:1;
+  pointer-events:none;
+  opacity:0;
+  transform:translateX(-72%) rotate(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.40),transparent);
+  transition:transform 480ms ease,opacity 230ms ease;
+}
+.green3d,.actions button{
+  background:linear-gradient(155deg,var(--mp-face-green-1) 0%,var(--mp-face-green-2) 39%,var(--mp-face-green-3) 100%);
+  border:2px solid var(--mp-gold-mid);
+  color:#fffef0;
+  text-shadow:0 2px 3px #001d18b5;
+  box-shadow:inset 0 1px 1px #fffbc0b8,inset 0 -3px 6px #00251ba6,
+    0 6px 0 var(--mp-gold-dark),0 10px 16px #002c2363;
+}
+.gold3d{
+  background:linear-gradient(160deg,#fff6c7 0%,#f7d76b 35%,#d4a536 73%,#ad8022 100%);
+  border:2px solid #b4892c;
+  color:#0d4432;
+  text-shadow:0 1px 0 #fff8d1;
+  box-shadow:inset 0 2px 1px #fffbdc,inset 0 -3px 7px #8d661b43,
+    0 6px 0 #956d23,0 10px 16px #063c2b42;
+}
+.secondary3d,.minor{
+  background:linear-gradient(160deg,#f8ffff,#deedf4 66%,#c7dfe4);
+  border:2px solid #caa94f;
+  color:#0b513b;
+  text-shadow:0 1px 0 #fff;
+  box-shadow:inset 0 2px 1px #fff,inset 0 -2px 4px #649d9a25,
+    0 4px 0 #ad8d36,0 7px 12px #002c2336;
+}
+.topright .minor{
+  background:linear-gradient(160deg,#158d68,#064e3b 73%,#02392f);
+  color:#fff9df;
+  text-shadow:0 2px 2px #002319;
+  border-color:#e5c470;
+  box-shadow:inset 0 2px 2px #ffffff40,0 4px 0 #987624,0 8px 12px #002c1f66;
+}
+.actions button{
+  padding:23px 11px;
+  min-height:86px;
+  font-size:clamp(12px,1.6vw,16px);
+  line-height:1.25;
+  letter-spacing:.01em;
+}
+.actions button.is-current,
+.actions button[aria-pressed="true"]{
+  background:linear-gradient(155deg,#fff3ac,#edc45c 56%,#b98425);
+  color:#064b36;
+  text-shadow:0 1px 0 #fff4d4;
+  border-color:#865f1b;
+  box-shadow:inset 0 2px 2px #fff7db,
+    0 3px 0 #8f6720,0 6px 12px #003f2c45;
+  transform:translateY(3px);
+}
+:is(.gold3d,.green3d,.secondary3d,.actions button,.minor):not(:disabled):active{
+  transform:translateY(5px) scale(.987);
+  box-shadow:inset 0 2px 8px #001f2635,0 1px 0 var(--mp-depth),
+    0 3px 6px #003c242a;
+  filter:saturate(1.1);
+}
+:is(.gold3d,.green3d,.secondary3d,.actions button,.minor):focus-visible{
+  outline:3px solid #f9d773;
+  outline-offset:4px;
+}
+:is(.gold3d,.green3d,.secondary3d,.actions button,.minor):disabled{
+  opacity:.6;
+  box-shadow:inset 0 2px 4px #00281b1b,0 2px 0 #9c947b;
+  transform:none;
+  filter:grayscale(.22);
+  cursor:not-allowed;
+}
+.actions button[aria-pressed="true"]:focus-visible{outline-color:#005a41}
+@media(hover:hover) and (pointer:fine){
+  :is(.gold3d,.green3d,.secondary3d,.actions button,.minor):not(:disabled):not(:active):hover{
+    transform:translateY(-2px);
+    filter:brightness(1.07) saturate(1.08);
+  }
+  :is(.gold3d,.green3d,.secondary3d,.actions button,.minor):not(:disabled):hover::after{
+    opacity:.7;
+    transform:translateX(72%) rotate(-18deg);
+  }
+  .actions button[aria-pressed="true"]:not(:disabled):not(:active):hover{transform:translateY(2px)}
+}
+.page:not([hidden]){animation:mp-page-enter 240ms ease-out both}
+.admin-overview:not([hidden]),.metrics article{animation:mp-rise 340ms ease-out both}
+.metrics article:nth-child(2){animation-delay:45ms}
+.metrics article:nth-child(3){animation-delay:90ms}
+.metrics article:nth-child(4){animation-delay:135ms}
+@keyframes mp-page-enter{from{opacity:.55;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes mp-rise{from{opacity:.55;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:580px){
+  .actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;row-gap:16px;margin:22px 0 27px}
+  .actions button{min-height:78px;padding:15px 5px;font-size:12px;overflow-wrap:anywhere}
+  .form button.gold3d,.form button.green3d{min-height:49px}
+  .admin-select{white-space:normal}
+  .topright .minor{font-size:12px;min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){
+  :is(.gold3d,.green3d,.secondary3d,.actions button,.minor){
+    transition:none!important;will-change:auto;
+  }
+  :is(.gold3d,.green3d,.secondary3d,.actions button,.minor)::after{display:none}
+  .page:not([hidden]),.admin-overview:not([hidden]),.metrics article{animation:none!important}
+}
+
+
+/* IGC MaquisPro — palette officielle BLEU CIEL + OR, boutons premium 3D.
+   Les couleurs de statut erreur/avertissement sont volontairement conservées. */
+:root{
+  color:#123a5f;
+  background:linear-gradient(150deg,#b5ddf8 0%,#e3f6ff 51%,#9bcaf0 100%);
+  --mp-face-green-1:#359de6;
+  --mp-face-green-2:#126ba9;
+  --mp-face-green-3:#063b70;
+  --mp-gold-light:#fff5c4;
+  --mp-gold-mid:#f0ca62;
+  --mp-gold-dark:#9e762c;
+  --mp-depth:#8e6b23;
+}
+body{
+  background:radial-gradient(ellipse at 5% 5%,#fff8d555,transparent 35%),
+    linear-gradient(152deg,#c7edff,#e8f8ff 51%,#afd9f6);
+  color:#173f68;
+}
+header.top{
+  background:linear-gradient(130deg,#054779 0%,#136fae 52%,#032b5f 100%);
+  border-bottom:3px solid #f4cf6c;
+  box-shadow:0 5px 0 #ae8835,0 11px 24px #052d5675;
+}
+.brand b{color:#ffe28e}
+.brand small{color:#eff8ff}
+.brand img{
+  padding:3px;
+  background:linear-gradient(145deg,#fff0ad,#c6a24c);
+  border:2px solid #ffdb76;
+  border-radius:15px;
+  box-shadow:inset 0 1px 2px #fff9bd,0 4px 8px #022f6175;
+}
+.pilot{
+  background:linear-gradient(145deg,#fff4c4,#e6b953);
+  border:1px solid #9f7c2d;
+  color:#1c4771;
+}
+main{color:#173f68}
+.panel,.page{
+  color:#173f68;
+  background:linear-gradient(155deg,#ffffffec,#e3f4ffec 72%,#d5ecfcfa);
+  border:2px solid #dcb75d;
+  box-shadow:0 7px 0 #c6a65655,0 14px 25px #194e7c36;
+}
+h1,h2,h3{color:#0b477c}
+.panel p,.page p{line-height:1.55}
+.hint,.form label,.admin-filters label{color:#3c6484}
+input,select,textarea{
+  background:#fff;
+  color:#163d62;
+  border:1.5px solid #95bbd4;
+  box-shadow:inset 0 2px 4px #174d7210;
+}
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  border-color:#c49b32;
+  outline:3px solid #f5d87c;
+}
+.hero{
+  background:linear-gradient(132deg,#044575,#1683be 53%,#032f64);
+  border:3px solid #f2c962;
+  box-shadow:inset 0 2px 4px #f7f6ff4d,0 7px 0 #b88d33,0 15px 24px #083b6a75;
+}
+.hero img{
+  border:2px solid #f2d47e;
+  box-shadow:0 5px 13px #002c5066;
+}
+.hero p,.hero small{color:#eaf6ff}
+.eyebrow{
+  color:#113f70;
+  background:linear-gradient(#fff9d9,#edc45f);
+  border:1px solid #c79e3e;
+  box-shadow:0 3px 0 #9b722a;
+}
+.metrics article,.admin-kpis div{
+  color:#174c76;
+  background:linear-gradient(145deg,#fffef8,#e1f3ff 75%,#d4edff);
+  border:2px solid #d4ae4f;
+  box-shadow:inset 0 2px 1px white,0 5px 0 #b99a4a,0 10px 16px #0b43804a;
+}
+.metrics small,.admin-kpis small{color:#456b88}
+.metrics strong,.admin-kpis strong{color:#0a4171}
+.card,.admin-overview{
+  background:linear-gradient(165deg,#fff,#eaf6ff 75%,#dceffa);
+  border-color:#d5b65d;
+  color:#173f68;
+}
+.admin-pricing span{
+  background:linear-gradient(150deg,#f9fdff,#d5edff);
+  border-color:#d1af5b;
+  color:#315e83;
+}
+.admin-pricing b,.admin-overview-title h3,.admin-status{color:#124d7a}
+.admin-status{background:#d9effe}
+.admin-status-bientot,.admin-status-en_attente{background:#fff3c5;color:#81561c}
+.admin-status-expire,.admin-status-suspendu{background:#ffe7e7;color:#a12829}
+.admin-status-inconnu{background:#eee8fa;color:#65547b}
+th{
+  background:linear-gradient(145deg,#07538c,#063260);
+  color:#fff7de;
+}
+td{border-bottom-color:#d3e7f1}
+td strong,.page b{color:#0a4a79}
+#cashToday{color:#0a4a79}
+footer{
+  background:linear-gradient(130deg,#063662,#075b95);
+  color:#eff9ff;
+  border-top:2px solid #d8b256;
+}
+.green3d,.actions button{
+  background:linear-gradient(150deg,var(--mp-face-green-1) 0%,var(--mp-face-green-2) 44%,var(--mp-face-green-3) 100%);
+  border-color:#f5d377;
+  color:#fff;
+  text-shadow:0 2px 2px #032b5590;
+  box-shadow:inset 0 2px 2px #e7f7ff99,inset 0 -3px 8px #002c58a9,
+    0 6px 0 #a17b2d,0 11px 18px #05396270;
+}
+.secondary3d,.minor{
+  background:linear-gradient(160deg,#fafefe,#e2f4ff 68%,#b9dbf4);
+  color:#134e7f;
+  border-color:#d3ac4c;
+  text-shadow:0 1px 0 white;
+  box-shadow:inset 0 2px 1px #fff,0 4px 0 #b18e37,0 8px 12px #0639633d;
+}
+.gold3d{
+  background:linear-gradient(160deg,#fff8d6 0%,#f5d76e 38%,#d7a73c 77%,#ae7f25);
+  border-color:#b08629;
+  color:#0b4374;
+  box-shadow:inset 0 2px 2px #fffbe4,0 6px 0 #9e7425,0 11px 17px #0839614a;
+}
+.topright .minor{
+  background:linear-gradient(148deg,#277fb5,#07497d 75%,#032f5f);
+  border:2px solid #f2cf72;
+  color:#fff9e4;
+  box-shadow:inset 0 1px 2px #e0f4ff66,0 4px 0 #a38131,0 8px 12px #05274c66;
+}
+.actions button.is-current,.actions button[aria-pressed="true"]{
+  background:linear-gradient(155deg,#fff6bf,#ecc15a 56%,#b88828);
+  color:#0a4473;
+  border-color:#98712a;
+  text-shadow:0 1px 0 #fffce5;
+  box-shadow:inset 0 2px 2px #fff8df,0 3px 0 #9b722b,0 7px 13px #0c407164;
+}
+.auth-email-help{
+  background:linear-gradient(150deg,#fff9e6,#eaf5ff);
+  border-color:#d5b158;
+  color:#655020;
+}
+@media(max-width:580px){
+  .hero{background:linear-gradient(150deg,#064474,#1676b4,#042f61)}
+  .admin-overview{padding:12px}
+}
+
+
+/* Fond MaquisPro : terrasse conviviale en soirée, bleu-or.
+   Photo : Jan Macháček / Unsplash License.
+   Illustration locale de secours : /maquis-ambiance.svg.
+   Aucun nouveau traitement de données ; ne modifie ni ventes ni abonnements. */
+html{background:#10446e}
+body{
+  position:relative;
+  min-height:100vh;
+  isolation:isolate;
+  background:transparent;
+}
+body::before{
+  content:"";
+  position:fixed;
+  z-index:0;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(170deg,rgba(5,44,87,.22),rgba(1,34,67,.38) 75%),
+    url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1600&q=78"),
+    url("/maquis-ambiance.svg");
+  background-position:center,center,center;
+  background-size:cover,cover,cover;
+  background-repeat:no-repeat;
+}
+body > header,body > main,body > footer{
+  position:relative;
+  z-index:1;
+}
+.panel,.page{
+  background:linear-gradient(156deg,rgba(250,254,255,.95),rgba(221,240,252,.91));
+  box-shadow:0 9px 28px #001d4062,0 3px 0 #cfb26899;
+}
+.notice{box-shadow:0 5px 17px #061f4140}
+.hero{
+  background-image:
+    linear-gradient(120deg,rgba(3,40,77,.88),rgba(2,53,92,.57)),
+    url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1400&q=76"),
+    url("/maquis-ambiance.svg");
+  background-position:center,center 48%,center;
+  background-size:cover,cover,cover;
+}
+.metrics article,.admin-kpis div{
+  background:linear-gradient(155deg,rgba(255,255,255,.96),rgba(219,240,255,.91));
+}
+.admin-overview,.card,.admin-pricing span{
+  background:linear-gradient(165deg,rgba(255,255,255,.96),rgba(225,243,254,.94));
+}
+@media(max-width:700px){
+  body::before{
+    background-image:
+      linear-gradient(160deg,rgba(5,38,77,.14),rgba(1,32,67,.34) 85%),
+      url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1050&q=72"),
+      url("/maquis-ambiance.svg");
+    background-position:center,center,center;
+  }
+  .panel,.page{background:rgba(241,250,255,.94)}
+  .hero{
+    background-image:
+      linear-gradient(135deg,rgba(2,45,81,.91),rgba(2,45,81,.63)),
+      url("https://images.unsplash.com/photo-1768121496277-8b9887bd6f7f?auto=format&fit=crop&w=1050&q=72"),
+      url("/maquis-ambiance.svg");
+    background-size:cover,cover,cover;
+    background-position:center;
+  }
+}
+@media(prefers-reduced-data:reduce){
+  body::before{
+    background-image:linear-gradient(rgba(3,38,69,.25),rgba(3,38,69,.55)),url("/maquis-ambiance.svg");
+    background-size:cover;
+  }
+}
+
+/* Propriétaire multi-maquis et invitation sécurisée d'un gérant par établissement. */
+.maquis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px;margin:20px 0}
+.maquis-choice{display:flex;flex-direction:column;justify-content:space-between;gap:18px;padding:19px;border:2px solid #d7b361;border-radius:20px;background:linear-gradient(155deg,#fbfdff,#dcedfd);box-shadow:inset 0 2px 2px #fff,0 5px 0 #b18d35,0 10px 18px #0a467333}
+.maquis-choice strong{display:block;font-size:19px;color:#0a4478}
+.maquis-choice small{display:block;margin-top:7px;color:#476b89;line-height:1.5}
+.maquis-choice button{padding:13px}
+#managerInviteCard{margin-top:22px;border:2px solid #d4ad54}
+#managerCurrent{padding:11px 13px;background:linear-gradient(150deg,#eef8ff,#fff7df);border-radius:12px;border:1px solid #b8d7eb;font-weight:700}
+#managerInviteForm{margin-top:16px}
+#managerInviteOutput{margin-top:18px;padding:15px;border-radius:14px;border:1px solid #ddbd66;background:#eff7ff}
+#managerInviteLink{font-size:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#removeManager{margin-bottom:12px}
+#invitationPanel{max-width:780px;margin-inline:auto}
+#invitationPanel .card{padding:18px;border-color:#e0be62;box-shadow:0 6px 0 #b99a4b38}
+#invitationPanel button{min-height:46px}
+@media(max-width:580px){
+ .maquis-choice{padding:15px;gap:13px}
+ #managerInviteOutput{padding:12px}
+ #invitationPanel .card{padding:12px}
+}
+
+/* Préinscriptions IGC : dossiers non commerciaux, reprise sans changer de propriétaire. */
+#preinscriptionsPanel{margin:18px 0;padding:20px;border:2px solid #d8b568}
+#preinscriptionsPanel h3{margin:4px 0 12px;color:#0b467b}
+#preinscriptionsList{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));margin-bottom:20px}
+#preinscriptionsList .maquis-choice{background:linear-gradient(145deg,#f9fdff,#e6f4ff);border-color:#d9bd79}
+#preinscriptionsList .maquis-choice small{overflow-wrap:anywhere}
+.preinscription-form{max-width:720px;margin:23px 0 4px;border-top:1px solid #c5dfee;padding-top:16px}
+.preinscription-form h3{margin:0}
+@media(max-width:600px){#preinscriptionsPanel{padding:12px}#preinscriptionsList{gap:12px}}
